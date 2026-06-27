@@ -1,0 +1,98 @@
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import List
+import requests
+import os
+import json
+from dotenv import load_dotenv
+
+load_dotenv()
+
+app = FastAPI(title="AlgoVisualizer AI Engine")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"], 
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+class AlgorithmState(BaseModel):
+    algorithm_name: str
+    current_step: int
+    phase: str
+    data_structure: List[int]
+    highlighted_indices: List[int]
+
+def get_iam_token(api_key: str) -> str:
+    # Ensure this is a clean, raw string
+    url = "https://iam.cloud.ibm.com/identity/token"
+    
+    # --- DEBUG: Print to terminal to see what's happening ---
+    print(f"DEBUG: Attempting to connect to URL: {url}")
+    print(f"DEBUG: URL type is: {type(url)}")
+    # --------------------------------------------------------
+    
+    headers = {"Content-Type": "application/x-www-form-urlencoded"}
+    data = {
+        "grant_type": "urn:ibm:params:oauth:grant-type:apikey",
+        "apikey": api_key
+    }
+    
+    response = requests.post(url, headers=headers, data=data)
+    if not response.ok:
+        raise Exception(f"Failed to generate IAM token. Status: {response.status_code}, Response: {response.text}")
+    return response.json()["access_token"]
+@app.post("/api/v1/narrate")
+async def generate_narration(state: AlgorithmState):
+    api_key = os.getenv("WATSONX_APIKEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="API Key missing!")
+
+    try:
+        access_token = get_iam_token(api_key)
+        # 2. Setup the request to your Orchestrate Agent
+        BASE_URL = "https://api.us-south.watson-orchestrate.cloud.ibm.com/instances/d781388e-1567-4604-b277-a72a9f74fc4e"
+        AGENT_ID = "4defadc3-2aa7-4c81-ae06-eb8d799f3308" 
+        
+        # Ensure this is a clean string, NO brackets
+        ENDPOINT = BASE_URL + "/v1/orchestrate/" + AGENT_ID + "/chat/completions"
+        
+        print(f"DEBUG: Connecting to: {ENDPOINT}") # Let's verify it again
+        headers = {"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"}
+        
+        user_prompt = (
+            f"You are visualizing {state.algorithm_name}. "
+            f"Currently, we are at STEP {state.current_step}. "
+            f"The current array is {state.data_structure}. "
+            "Return ONLY a JSON object for this step: "
+            '{"action": "string", "explanation": "string", "current_state": [int, ...]}'
+        )
+
+        payload = {"messages": [{"role": "user", "content": user_prompt}], "stream": False}
+        agent_response = requests.post(ENDPOINT, json=payload, headers=headers)
+        
+        if not agent_response.ok:
+            raise HTTPException(status_code=500, detail=agent_response.text)
+        
+        agent_data = agent_response.json()
+        agent_reply = agent_data.get("choices", [{}])[0].get("message", {}).get("content", "")
+        
+        # --- THE CLEANER ---
+        if "```json" in agent_reply:
+            agent_reply = agent_reply.split("```json")[1].split("```")[0].strip()
+        elif "```" in agent_reply:
+            agent_reply = agent_reply.split("```")[1].split("```")[0].strip()
+
+        step_data = json.loads(agent_reply)
+        
+        return {
+            "action": step_data.get("action", "Processing"),
+            "logic": step_data.get("explanation", "Next step."),
+            "result": step_data.get("current_state", state.data_structure)
+        }
+
+    except Exception as e:
+        print(f"DEBUG ERROR: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
