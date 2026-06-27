@@ -22,10 +22,15 @@ export default function App() {
       <div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
         <div>
           <label style={{ marginRight: '10px' }}>Algorithm: </label>
-          <select value={algorithm} onChange={(e) => setAlgorithm(e.target.value)}>
+          <select className="drop-down" value={algorithm} onChange={(e) => setAlgorithm(e.target.value)}>
             <option>Bubble Sort</option>
             <option>Selection Sort</option>
             <option>Insertion Sort</option>
+            <option>Merge Sort</option>
+            <option>Quick Sort</option>
+            <option>Heap Sort</option>
+            <option>3-way Merge Sort</option>
+            <option>Cycle Sort</option>
           </select>
         </div>
         
@@ -74,7 +79,7 @@ export default function App() {
       </button>
 
       <div style={{ marginTop: '30px', padding: '20px', backgroundColor: '#f5f5f5', borderRadius: '8px', borderLeft: '4px solid #0062ff' }}>
-        <p style={{ margin: 0, lineHeight: '1.5' }}>{narrationText}</p>
+        <p style={{ margin: 10, lineHeight: '1.5' }}>{narrationText}</p>
       </div>
     </div>
   );

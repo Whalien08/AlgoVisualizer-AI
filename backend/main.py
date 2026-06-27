@@ -26,13 +26,10 @@ class AlgorithmState(BaseModel):
     highlighted_indices: List[int]
 
 def get_iam_token(api_key: str) -> str:
-    # Ensure this is a clean, raw string
     url = "https://iam.cloud.ibm.com/identity/token"
     
-    # --- DEBUG: Print to terminal to see what's happening ---
     print(f"DEBUG: Attempting to connect to URL: {url}")
     print(f"DEBUG: URL type is: {type(url)}")
-    # --------------------------------------------------------
     
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
     data = {
@@ -52,11 +49,10 @@ async def generate_narration(state: AlgorithmState):
 
     try:
         access_token = get_iam_token(api_key)
-        # 2. Setup the request to your Orchestrate Agent
+
         BASE_URL = "https://api.us-south.watson-orchestrate.cloud.ibm.com/instances/d781388e-1567-4604-b277-a72a9f74fc4e"
         AGENT_ID = "4defadc3-2aa7-4c81-ae06-eb8d799f3308" 
         
-        # Ensure this is a clean string, NO brackets
         ENDPOINT = BASE_URL + "/v1/orchestrate/" + AGENT_ID + "/chat/completions"
         
         print(f"DEBUG: Connecting to: {ENDPOINT}") # Let's verify it again
@@ -68,6 +64,8 @@ async def generate_narration(state: AlgorithmState):
             f"The current array is {state.data_structure}. "
             "Return ONLY a JSON object for this step: "
             '{"action": "string", "explanation": "string", "current_state": [int, ...]}'
+            "the action should be in all caps"
+            "when the number are sorted inform that it has been sorted after that don't need to accept user prompt till the input has changed"
         )
 
         payload = {"messages": [{"role": "user", "content": user_prompt}], "stream": False}
@@ -79,7 +77,6 @@ async def generate_narration(state: AlgorithmState):
         agent_data = agent_response.json()
         agent_reply = agent_data.get("choices", [{}])[0].get("message", {}).get("content", "")
         
-        # --- THE CLEANER ---
         if "```json" in agent_reply:
             agent_reply = agent_reply.split("```json")[1].split("```")[0].strip()
         elif "```" in agent_reply:
