@@ -5,6 +5,7 @@
 node_modules/
 venv/
 __pycache__/
+main.cpython-314.pyc
 
 # Logs
 *.log
