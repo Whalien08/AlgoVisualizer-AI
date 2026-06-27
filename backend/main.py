@@ -5,7 +5,6 @@ from typing import List
 import requests
 import os
 import json
-import time
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -26,32 +25,22 @@ class AlgorithmState(BaseModel):
     data_structure: List[int]
     highlighted_indices: List[int]
 
-_cached_iam_token: str | None = None
-_cached_token_expiry: float = 0.0
-
 def get_iam_token(api_key: str) -> str:
-    global _cached_iam_token, _cached_token_expiry
-
-    if _cached_iam_token and _cached_token_expiry > time.time() + 30:
-        return _cached_iam_token
-
     url = "https://iam.cloud.ibm.com/identity/token"
+    
+    print(f"DEBUG: Attempting to connect to URL: {url}")
+    print(f"DEBUG: URL type is: {type(url)}")
+    
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
     data = {
         "grant_type": "urn:ibm:params:oauth:grant-type:apikey",
         "apikey": api_key
     }
-
+    
     response = requests.post(url, headers=headers, data=data)
     if not response.ok:
         raise Exception(f"Failed to generate IAM token. Status: {response.status_code}, Response: {response.text}")
-
-    token_data = response.json()
-    _cached_iam_token = token_data["access_token"]
-    expires_in = token_data.get("expires_in", 3600)
-    _cached_token_expiry = time.time() + int(expires_in)
-    return _cached_iam_token
-
+    return response.json()["access_token"]
 @app.post("/api/v1/narrate")
 async def generate_narration(state: AlgorithmState):
     api_key = os.getenv("WATSONX_APIKEY")
