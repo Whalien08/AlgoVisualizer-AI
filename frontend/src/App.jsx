@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import useAlgorithmNarrator from './useAlgorithmNarrator';
 
 export default function App() {
@@ -14,6 +14,31 @@ export default function App() {
     handleApplySettings,
     handleNextStep
   } = useAlgorithmNarrator();
+
+  const [compareIndices, setCompareIndices] = useState([]);
+  const [swapIndices, setSwapIndices] = useState([]);
+  const previousArray = useRef(dataArray);
+
+  useEffect(() => {
+    const prev = previousArray.current;
+    const changedIndices = dataArray.reduce((indices, value, index) => {
+      if (prev[index] !== value) indices.push(index);
+      return indices;
+    }, []);
+
+    if (changedIndices.length > 0) {
+      setSwapIndices(changedIndices);
+      setCompareIndices([]);
+    }
+
+    previousArray.current = dataArray;
+  }, [dataArray]);
+
+  const handleNextClicked = () => {
+    setCompareIndices([0, 1]);
+    setSwapIndices([]);
+    handleNextStep();
+  };
 
   return (
     <div style={{ padding: '40px', fontFamily: 'system-ui, sans-serif', maxWidth: '800px', margin: '0 auto' }}>
@@ -46,20 +71,11 @@ export default function App() {
         </div>
       </div>
       
-      <div style={{ display: 'flex', gap: '15px', margin: '30px 0', minHeight: '80px' }}>
+      <div className="array-container">
         {dataArray.map((num, i) => (
-          <div 
-            key={i} 
-            style={{ 
-              padding: '20px', 
-              border: '2px solid #333', 
-              borderRadius: '6px',
-              backgroundColor: '#fff',
-              fontWeight: 'bold',
-              fontSize: '18px',
-              textAlign: 'center',
-              minWidth: '40px'
-            }}
+          <div
+            key={i}
+            className={`array-card ${compareIndices.includes(i) ? 'compare' : ''} ${swapIndices.includes(i) ? 'swap' : ''}`}
           >
             {num}
           </div>
@@ -71,7 +87,7 @@ export default function App() {
       </div>
 
       <button 
-        onClick={handleNextStep} 
+        onClick={handleNextClicked} 
         disabled={isLoading}
         style={{ padding: '10px 20px', fontSize: '16px', cursor: 'pointer' }}
       >

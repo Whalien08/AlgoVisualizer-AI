@@ -149,7 +149,8 @@ button + .action {
   min-width: 170px;
 }
 
-#root > div > div:nth-of-type(2) {
+#root > div > div:nth-of-type(2),
+.array-container {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -158,13 +159,13 @@ button + .action {
   min-height: 100px;
 }
 
-#root > div > div:nth-of-type(2) > div {
+.array-card {
   display: inline-flex;
   justify-content: center;
   align-items: center;
   min-width: 54px;
   min-height: 54px;
-  padding: 16px;
+  padding: 16px 18px;
   border-radius: 18px;
   border: 1px solid rgba(79, 70, 229, 0.15);
   background: var(--surface) !important;
@@ -172,6 +173,52 @@ button + .action {
   font-weight: 700;
   font-size: 1rem;
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+  transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  will-change: transform, background-color, box-shadow;
+  position: relative;
+}
+
+.array-card.compare {
+  background: rgba(251, 191, 36, 0.16);
+  border-color: rgba(245, 158, 11, 0.6);
+  box-shadow: 0 18px 35px rgba(245, 158, 11, 0.18);
+}
+
+.array-card.swap {
+  background: rgba(34, 197, 94, 0.16);
+  border-color: rgba(16, 185, 129, 0.7);
+  box-shadow: 0 18px 35px rgba(16, 185, 129, 0.18);
+}
+
+.array-card.compare::after,
+.array-card.swap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+}
+
+.array-card.compare::after {
+  box-shadow: inset 0 0 0 2px rgba(245, 158, 11, 0.35);
+}
+
+.array-card.swap::after {
+  box-shadow: inset 0 0 0 2px rgba(16, 185, 129, 0.35);
+}
+
+@keyframes swap-pulse {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  30% {
+    transform: translateY(-8px) scale(1.08);
+  }
+  60% {
+    transform: translateY(4px) scale(1.02);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
 }
 
 #root > div > div:nth-of-type(3) {
