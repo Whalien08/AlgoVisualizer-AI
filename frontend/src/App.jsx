@@ -16,17 +16,51 @@ export default function App() {
     hasShownIntro,
     compareIndices,
     swapIndices,
-    pivotIndices
+    pivotIndices,
+    partitionTree
   } = useAlgorithmNarrator();
 
   const handleNextClicked = () => {
     handleNextStep();
   };
 
+  const renderPartitionNode = (node) => {
+    if (!node) {
+      return null;
+    }
+
+    const children = Array.isArray(node.children) ? node.children.filter(Boolean) : [];
+
+    return (
+      <div className="partition-node-wrapper">
+        <div className="partition-node">
+          <div className="partition-node-label">{node.label || 'Partition'}</div>
+          {node.operation && <div className="partition-node-operation">{node.operation}</div>}
+          {node.message && <div className="partition-node-message">{node.message}</div>}
+          <div className="partition-values">
+            {(node.values || []).map((value, index) => (
+              <span key={`${node.label}-${index}`} className="partition-value">{value}</span>
+            ))}
+          </div>
+        </div>
+        {children.length > 0 && (
+          <div className="partition-children">
+            {children.map((child, index) => (
+              <div key={`${node.label}-child-${index}`} className={`partition-child ${index === 0 ? 'partition-child-left' : 'partition-child-right'}`}>
+                {renderPartitionNode(child)}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const isIntroPending = !hasShownIntro && currentStep === 0;
+  const visiblePartitionTree = algorithm?.toLowerCase() === 'merge sort' ? partitionTree : null;
 
   return (
-    <div style={{ padding: '40px', fontFamily: 'system-ui, sans-serif', maxWidth: '800px', margin: '0 auto' }}>
+    <div style={{ padding: '40px', fontFamily: 'system-ui, sans-serif', maxWidth: '1100px', margin: '0 auto' }}>
       <h1>Algorithmic Visualizer AI</h1>
       
       <div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -91,6 +125,13 @@ export default function App() {
           );
         })}
       </div>
+
+      {visiblePartitionTree && (
+        <div className="partition-tree">
+          <div className="partition-tree-title">Partition view</div>
+          {renderPartitionNode(visiblePartitionTree)}
+        </div>
+      )}
 
       <div style={{ marginBottom: '20px' }}>
         <p><strong>Step Counter:</strong> {currentStep}</p>

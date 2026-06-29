@@ -12,6 +12,7 @@ export default function useAlgorithmNarrator() {
   const [compareIndices, setCompareIndices] = useState([]);
   const [swapIndices, setSwapIndices] = useState([]);
   const [pivotIndices, setPivotIndices] = useState([]);
+  const [partitionTree, setPartitionTree] = useState(null);
 
   const normalizeNumberArray = (value) => {
     if (!Array.isArray(value)) {
@@ -63,6 +64,7 @@ export default function useAlgorithmNarrator() {
     setCompareIndices(nextCompareIndices);
     setSwapIndices(nextSwapIndices);
     setPivotIndices(nextPivotIndices);
+    setPartitionTree(algorithm?.toLowerCase() === 'merge sort' && step?.partition_tree ? step.partition_tree : null);
     setNarrationText(`${step?.action || 'STEP'}. ${step?.logic || 'Next step.'}`);
   };
 
@@ -113,6 +115,7 @@ export default function useAlgorithmNarrator() {
     setCompareIndices([]);
     setSwapIndices([]);
     setPivotIndices([]);
+    setPartitionTree(null);
     setNarrationText("Settings applied. Click 'Start Algorithm' to hear an introduction.");
   };
 
@@ -133,6 +136,7 @@ export default function useAlgorithmNarrator() {
       setCompareIndices([]);
       setSwapIndices([]);
       setPivotIndices([]);
+      setPartitionTree(null);
       return;
     }
 
@@ -154,6 +158,7 @@ export default function useAlgorithmNarrator() {
     hasShownIntro,
     compareIndices,
     swapIndices,
-    pivotIndices
+    pivotIndices,
+    partitionTree
   };
 }

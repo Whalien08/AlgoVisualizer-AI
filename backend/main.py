@@ -97,11 +97,13 @@ def normalize_step(step: Dict[str, Any], fallback: List[int]) -> Dict[str, Any]:
         "result": normalize_step_value(step.get("result") or step.get("current_state") or fallback),
         "compare_indices": normalize_step_value(step.get("compare_indices") or []),
         "swap_indices": normalize_step_value(step.get("swap_indices") or []),
+        "pivot_indices": normalize_step_value(step.get("pivot_indices") or []),
+        "partition_tree": step.get("partition_tree"),
     }
 
 
 def build_deterministic_plan(algorithm_name: str, data_structure: List[int]) -> Dict[str, Any]:
-    def make_step(action: str, logic: str, arr: List[int], compare_indices=None, swap_indices=None, pivot_indices=None):
+    def make_step(action: str, logic: str, arr: List[int], compare_indices=None, swap_indices=None, pivot_indices=None, partition_tree=None):
         return {
             "action": action,
             "logic": logic,
@@ -109,6 +111,7 @@ def build_deterministic_plan(algorithm_name: str, data_structure: List[int]) -> 
             "compare_indices": compare_indices or [],
             "swap_indices": swap_indices or [],
             "pivot_indices": pivot_indices or [],
+            "partition_tree": partition_tree,
         }
 
     intro = make_step(
@@ -219,13 +222,81 @@ def build_deterministic_plan(algorithm_name: str, data_structure: List[int]) -> 
                 steps.append(make_step("COMPARE", f"Inserted the value into the correct position.", arr, [j, j + 1], [], []))
         steps.append(make_step("SORTED", "The array has been sorted.", arr, [], [], []))
 
+    elif name == "merge sort":
+        arr = list(data_structure)
+
+        def build_tree(low: int, high: int, operation: str = "Split", message: str | None = None):
+            if low > high:
+                return None
+            if low == high:
+                return {
+                    "label": f"[{low},{high}]",
+                    "values": [arr[low]],
+                    "operation": operation,
+                    "message": message or f"{operation} the single element at index {low}.",
+                    "children": []
+                }
+            mid = (low + high) // 2
+            return {
+                "label": f"[{low},{high}]",
+                "values": arr[low:high + 1],
+                "operation": operation,
+                "message": message or f"{operation} the range [{low},{high}] into left and right halves.",
+                "children": [build_tree(low, mid, operation, message), build_tree(mid + 1, high, operation, message)]
+            }
+
+        def merge_sort(low: int, high: int):
+            if low >= high:
+                return
+
+            mid = (low + high) // 2
+            split_tree = build_tree(low, high, "Split", f"Split the range [{low},{high}] into left and right halves.")
+            steps.append(make_step("SPLIT", f"Split the range [{low},{high}] into left and right halves.", arr, [], [], [], split_tree))
+            merge_sort(low, mid)
+            merge_sort(mid + 1, high)
+
+            left = arr[low:mid + 1]
+            right = arr[mid + 1:high + 1]
+            merged = []
+            i = j = 0
+            compare_indices = []
+
+            while i < len(left) and j < len(right):
+                compare_indices = [low + i, mid + 1 + j]
+                if left[i] <= right[j]:
+                    merged.append(left[i])
+                    i += 1
+                else:
+                    merged.append(right[j])
+                    j += 1
+
+            merged.extend(left[i:])
+            merged.extend(right[j:])
+            arr[low:high + 1] = merged
+
+            compare_indices = [low, high]
+            merge_tree = build_tree(low, high, "Merge", f"Merge the two sorted halves of [{low},{high}] by comparing them from left to right.")
+            steps.append(make_step("MERGE", f"Merged the two halves for the range [{low},{high}].", arr, compare_indices, compare_indices, [], merge_tree))
+
+        merge_sort(0, len(arr) - 1)
+        steps.append(make_step("SORTED", "The array has been sorted.", arr, [], [], [], None))
+
     elif name == "quick sort":
         arr = list(data_structure)
 
-        def partition(low: int, high: int) -> int:
+        def build_tree(low: int, high: int):
+            if low > high:
+                return None
+            return {
+                "label": f"[{low},{high}]",
+                "values": arr[low:high + 1],
+                "children": []
+            }
+
+        def partition(low: int, high: int, tree_node: Dict[str, Any]) -> int:
             pivot = arr[high]
             i = low - 1
-            steps.append(make_step("PIVOT", f"Using index {high} as the pivot with value {pivot}.", arr, [high], [], [high]))
+            steps.append(make_step("PIVOT", f"Using index {high} as the pivot with value {pivot}.", arr, [high], [], [high], None))
             for j in range(low, high):
                 compare_indices = [j, high]
                 if arr[j] <= pivot:
@@ -240,6 +311,11 @@ def build_deterministic_plan(algorithm_name: str, data_structure: List[int]) -> 
                                 compare_indices,
                                 [i, j],
                                 [high],
+                                {
+                                    "label": "Current Partition",
+                                    "values": arr[low:high + 1],
+                                    "children": []
+                                },
                             )
                         )
                     else:
@@ -251,6 +327,11 @@ def build_deterministic_plan(algorithm_name: str, data_structure: List[int]) -> 
                                 compare_indices,
                                 [],
                                 [high],
+                                {
+                                    "label": "Current Partition",
+                                    "values": arr[low:high + 1],
+                                    "children": []
+                                },
                             )
                         )
                 else:
@@ -262,6 +343,7 @@ def build_deterministic_plan(algorithm_name: str, data_structure: List[int]) -> 
                             compare_indices,
                             [],
                             [high],
+                            None,
                         )
                     )
             arr[i + 1], arr[high] = arr[high], arr[i + 1]
@@ -273,18 +355,23 @@ def build_deterministic_plan(algorithm_name: str, data_structure: List[int]) -> 
                     [i + 1, high],
                     [i + 1, high],
                     [high],
+                    None,
                 )
             )
             return i + 1
 
-        def quicksort(low: int, high: int):
+        def quicksort(low: int, high: int, tree_node: Dict[str, Any]):
             if low < high:
-                pivot_index = partition(low, high)
-                quicksort(low, pivot_index - 1)
-                quicksort(pivot_index + 1, high)
+                pivot_index = partition(low, high, tree_node)
+                left_child = build_tree(low, pivot_index - 1)
+                right_child = build_tree(pivot_index + 1, high)
+                tree_node["children"] = [left_child, right_child]
+                quicksort(low, pivot_index - 1, left_child)
+                quicksort(pivot_index + 1, high, right_child)
 
-        quicksort(0, len(arr) - 1)
-        steps.append(make_step("SORTED", "The array has been sorted.", arr, [], [], []))
+        root = build_tree(0, len(arr) - 1)
+        quicksort(0, len(arr) - 1, root)
+        steps.append(make_step("SORTED", "The array has been sorted.", arr, [], [], [], None))
 
     else:
         steps.append(make_step("STEP", f"{algorithm_name} is being shown step by step.", list(data_structure), [], [], []))
@@ -298,7 +385,7 @@ async def generate_narration(state: AlgorithmState):
     if not api_key:
         raise HTTPException(status_code=500, detail="API Key missing!")
 
-    supported_algorithms = {"bubble sort", "selection sort", "insertion sort", "quick sort"}
+    supported_algorithms = {"bubble sort", "selection sort", "insertion sort", "merge sort", "quick sort"}
     if state.algorithm_name.lower() in supported_algorithms:
         return build_deterministic_plan(state.algorithm_name, state.data_structure)
 
