@@ -15,7 +15,8 @@ export default function App() {
     handleNextStep,
     hasShownIntro,
     compareIndices,
-    swapIndices
+    swapIndices,
+    pivotIndices
   } = useAlgorithmNarrator();
 
   const handleNextClicked = () => {
@@ -59,11 +60,12 @@ export default function App() {
         {dataArray.map((num, i) => {
           const isCompared = compareIndices.includes(i);
           const isSwapped = swapIndices.includes(i);
+          const isPivot = pivotIndices.includes(i);
 
           return (
             <div key={i} className="array-item">
               <div
-                className={`array-card ${isCompared ? 'compare' : ''} ${isSwapped ? 'swap' : ''}`}
+                className={`array-card ${isCompared ? 'compare' : ''} ${isSwapped ? 'swap' : ''} ${isPivot ? 'pivot' : ''}`}
               >
                 {num}
               </div>
@@ -71,6 +73,12 @@ export default function App() {
                 <div className="compare-annotation">
                   <div className="compare-line" />
                   <span className="compare-label">Compared</span>
+                </div>
+              )}
+              {isPivot && (
+                <div className="pivot-annotation">
+                  <div className="pivot-line" />
+                  <span className="pivot-label">Pivot</span>
                 </div>
               )}
               {isSwapped && (

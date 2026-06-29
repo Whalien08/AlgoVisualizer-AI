@@ -100,17 +100,30 @@ def normalize_step(step: Dict[str, Any], fallback: List[int]) -> Dict[str, Any]:
     }
 
 
-def build_fallback_plan(algorithm_name: str, data_structure: List[int]) -> Dict[str, Any]:
-    intro = {
-        "action": "INTRODUCTION",
-        "logic": f"{algorithm_name} repeatedly compares values and swaps them when needed.",
-        "result": list(data_structure),
-        "compare_indices": [],
-        "swap_indices": [],
-    }
+def build_deterministic_plan(algorithm_name: str, data_structure: List[int]) -> Dict[str, Any]:
+    def make_step(action: str, logic: str, arr: List[int], compare_indices=None, swap_indices=None, pivot_indices=None):
+        return {
+            "action": action,
+            "logic": logic,
+            "result": list(arr),
+            "compare_indices": compare_indices or [],
+            "swap_indices": swap_indices or [],
+            "pivot_indices": pivot_indices or [],
+        }
 
-    steps = [intro]
-    if algorithm_name.lower() == "bubble sort":
+    intro = make_step(
+        "INTRODUCTION",
+        f"{algorithm_name} compares values and moves them according to its rule set so the array becomes sorted.",
+        list(data_structure),
+        [],
+        [],
+        [],
+    )
+
+    steps: List[Dict[str, Any]] = []
+    name = algorithm_name.lower()
+
+    if name == "bubble sort":
         arr = list(data_structure)
         n = len(arr)
         for i in range(n):
@@ -121,54 +134,160 @@ def build_fallback_plan(algorithm_name: str, data_structure: List[int]) -> Dict[
                     arr[j], arr[j + 1] = arr[j + 1], arr[j]
                     swapped = True
                     steps.append(
-                        {
-                            "action": "COMPARE_AND_SWAP",
-                            "logic": f"Compared {arr[j + 1]} and {arr[j]} and swapped them.",
-                            "result": list(arr),
-                            "compare_indices": compare_indices,
-                            "swap_indices": compare_indices,
-                        }
+                        make_step(
+                            "COMPARE_AND_SWAP",
+                            f"Compared indices {j} and {j + 1} and swapped them.",
+                            arr,
+                            compare_indices,
+                            compare_indices,
+                            [],
+                        )
                     )
                 else:
                     steps.append(
-                        {
-                            "action": "COMPARE",
-                            "logic": f"Compared {arr[j]} and {arr[j + 1]} and kept their order.",
-                            "result": list(arr),
-                            "compare_indices": compare_indices,
-                            "swap_indices": [],
-                        }
+                        make_step(
+                            "COMPARE",
+                            f"Compared indices {j} and {j + 1} and kept their order.",
+                            arr,
+                            compare_indices,
+                            [],
+                            [],
+                        )
                     )
             if not swapped:
-                steps.append(
-                    {
-                        "action": "DONE",
-                        "logic": "The array is already sorted.",
-                        "result": list(arr),
-                        "compare_indices": [],
-                        "swap_indices": [],
-                    }
-                )
+                steps.append(make_step("DONE", "The array is already sorted.", arr, [], [], []))
                 break
-        steps.append(
-            {
-                "action": "SORTED",
-                "logic": "The array has been sorted.",
-                "result": list(arr),
-                "compare_indices": [],
-                "swap_indices": [],
-            }
-        )
+        steps.append(make_step("SORTED", "The array has been sorted.", arr, [], [], []))
+
+    elif name == "selection sort":
+        arr = list(data_structure)
+        n = len(arr)
+        for i in range(n):
+            min_idx = i
+            for j in range(i + 1, n):
+                compare_indices = [i, j]
+                steps.append(
+                    make_step(
+                        "COMPARE",
+                        f"Compared the current minimum at index {i} with index {j}.",
+                        arr,
+                        compare_indices,
+                        [],
+                        [],
+                    )
+                )
+                if arr[j] < arr[min_idx]:
+                    min_idx = j
+            if min_idx != i:
+                arr[i], arr[min_idx] = arr[min_idx], arr[i]
+                steps.append(
+                    make_step(
+                        "COMPARE_AND_SWAP",
+                        f"Swapped the minimum value into position {i}.",
+                        arr,
+                        [i, min_idx],
+                        [i, min_idx],
+                        [],
+                    )
+                )
+            else:
+                steps.append(make_step("COMPARE", f"No swap was needed for position {i}.", arr, [i, min_idx], [], []))
+        steps.append(make_step("SORTED", "The array has been sorted.", arr, [], [], []))
+
+    elif name == "insertion sort":
+        arr = list(data_structure)
+        n = len(arr)
+        for i in range(1, n):
+            j = i
+            while j > 0 and arr[j - 1] > arr[j]:
+                compare_indices = [j - 1, j]
+                arr[j - 1], arr[j] = arr[j], arr[j - 1]
+                steps.append(
+                    make_step(
+                        "COMPARE_AND_SWAP",
+                        f"Moved the value at index {j} left into position {j - 1}.",
+                        arr,
+                        compare_indices,
+                        compare_indices,
+                        [],
+                    )
+                )
+                j -= 1
+            if j == i:
+                steps.append(make_step("COMPARE", f"No swap was needed for index {i}.", arr, [i - 1, i], [], []))
+            else:
+                steps.append(make_step("COMPARE", f"Inserted the value into the correct position.", arr, [j, j + 1], [], []))
+        steps.append(make_step("SORTED", "The array has been sorted.", arr, [], [], []))
+
+    elif name == "quick sort":
+        arr = list(data_structure)
+
+        def partition(low: int, high: int) -> int:
+            pivot = arr[high]
+            i = low - 1
+            steps.append(make_step("PIVOT", f"Using index {high} as the pivot with value {pivot}.", arr, [high], [], [high]))
+            for j in range(low, high):
+                compare_indices = [j, high]
+                if arr[j] <= pivot:
+                    i += 1
+                    if i != j:
+                        arr[i], arr[j] = arr[j], arr[i]
+                        steps.append(
+                            make_step(
+                                "COMPARE_AND_SWAP",
+                                f"Swapped indices {i} and {j} around the pivot.",
+                                arr,
+                                compare_indices,
+                                [i, j],
+                                [high],
+                            )
+                        )
+                    else:
+                        steps.append(
+                            make_step(
+                                "COMPARE",
+                                f"Kept index {j} in place while partitioning.",
+                                arr,
+                                compare_indices,
+                                [],
+                                [high],
+                            )
+                        )
+                else:
+                    steps.append(
+                        make_step(
+                            "COMPARE",
+                            f"The value at index {j} stayed on the right side of the pivot.",
+                            arr,
+                            compare_indices,
+                            [],
+                            [high],
+                        )
+                    )
+            arr[i + 1], arr[high] = arr[high], arr[i + 1]
+            steps.append(
+                make_step(
+                    "COMPARE_AND_SWAP",
+                    f"Placed the pivot value into its final position.",
+                    arr,
+                    [i + 1, high],
+                    [i + 1, high],
+                    [high],
+                )
+            )
+            return i + 1
+
+        def quicksort(low: int, high: int):
+            if low < high:
+                pivot_index = partition(low, high)
+                quicksort(low, pivot_index - 1)
+                quicksort(pivot_index + 1, high)
+
+        quicksort(0, len(arr) - 1)
+        steps.append(make_step("SORTED", "The array has been sorted.", arr, [], [], []))
+
     else:
-        steps.append(
-            {
-                "action": "STEP",
-                "logic": f"{algorithm_name} is being shown step by step.",
-                "result": list(data_structure),
-                "compare_indices": [],
-                "swap_indices": [],
-            }
-        )
+        steps.append(make_step("STEP", f"{algorithm_name} is being shown step by step.", list(data_structure), [], [], []))
 
     return {"intro": intro, "steps": steps}
 
@@ -178,6 +297,10 @@ async def generate_narration(state: AlgorithmState):
     api_key = os.getenv("WATSONX_APIKEY")
     if not api_key:
         raise HTTPException(status_code=500, detail="API Key missing!")
+
+    supported_algorithms = {"bubble sort", "selection sort", "insertion sort", "quick sort"}
+    if state.algorithm_name.lower() in supported_algorithms:
+        return build_deterministic_plan(state.algorithm_name, state.data_structure)
 
     try:
         access_token = get_iam_token(api_key)
@@ -191,8 +314,8 @@ async def generate_narration(state: AlgorithmState):
         user_prompt = (
             f"Create a complete walkthrough for {state.algorithm_name} using this starting array {state.data_structure}. "
             "Return ONLY JSON with keys 'intro' and 'steps'. "
-            "The 'intro' object should have action, logic, result, compare_indices, and swap_indices. "
-            "The 'steps' array should contain several step objects, each with action, logic, result, compare_indices, and swap_indices. "
+            "The 'intro' object should have action, logic, result, compare_indices, swap_indices, and pivot_indices. "
+            "The 'steps' array should contain several step objects, each with action, logic, result, compare_indices, swap_indices, and pivot_indices. "
             "Make sure the walkthrough includes both comparison and swap moments so the UI can highlight them. "
             "Do not include markdown."
         )
@@ -214,6 +337,7 @@ async def generate_narration(state: AlgorithmState):
                 "result": list(state.data_structure),
                 "compare_indices": [],
                 "swap_indices": [],
+                "pivot_indices": [],
             },
             list(state.data_structure),
         )
@@ -232,4 +356,4 @@ async def generate_narration(state: AlgorithmState):
 
     except Exception as e:
         print(f"DEBUG ERROR: {str(e)}")
-        return build_fallback_plan(state.algorithm_name, state.data_structure)
+        return build_deterministic_plan(state.algorithm_name, state.data_structure)

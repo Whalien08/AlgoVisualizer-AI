@@ -11,6 +11,7 @@ export default function useAlgorithmNarrator() {
   const [stepPlan, setStepPlan] = useState([]);
   const [compareIndices, setCompareIndices] = useState([]);
   const [swapIndices, setSwapIndices] = useState([]);
+  const [pivotIndices, setPivotIndices] = useState([]);
 
   const normalizeNumberArray = (value) => {
     if (!Array.isArray(value)) {
@@ -57,9 +58,11 @@ export default function useAlgorithmNarrator() {
 
     const nextCompareIndices = normalizeIndexArray(step?.compare_indices ?? []);
     const nextSwapIndices = normalizeIndexArray(step?.swap_indices ?? []);
+    const nextPivotIndices = normalizeIndexArray(step?.pivot_indices ?? []);
 
     setCompareIndices(nextCompareIndices);
     setSwapIndices(nextSwapIndices);
+    setPivotIndices(nextPivotIndices);
     setNarrationText(`${step?.action || 'STEP'}. ${step?.logic || 'Next step.'}`);
   };
 
@@ -109,6 +112,7 @@ export default function useAlgorithmNarrator() {
     setStepPlan([]);
     setCompareIndices([]);
     setSwapIndices([]);
+    setPivotIndices([]);
     setNarrationText("Settings applied. Click 'Start Algorithm' to hear an introduction.");
   };
 
@@ -128,6 +132,7 @@ export default function useAlgorithmNarrator() {
       setNarrationText("Algorithm complete. The walkthrough has finished.");
       setCompareIndices([]);
       setSwapIndices([]);
+      setPivotIndices([]);
       return;
     }
 
@@ -148,6 +153,7 @@ export default function useAlgorithmNarrator() {
     handleNextStep,
     hasShownIntro,
     compareIndices,
-    swapIndices
+    swapIndices,
+    pivotIndices
   };
 }
