@@ -12,21 +12,51 @@ export default function useAlgorithmNarrator() {
   const [compareIndices, setCompareIndices] = useState([]);
   const [swapIndices, setSwapIndices] = useState([]);
 
+  const normalizeNumberArray = (value) => {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+
+    return value
+      .map((item) => {
+        if (typeof item === 'number' && Number.isFinite(item)) {
+          return item;
+        }
+        if (typeof item === 'string' && /^-?\d+(\.\d+)?$/.test(item.trim())) {
+          return Number(item);
+        }
+        return null;
+      })
+      .filter((item) => item !== null);
+  };
+
+  const normalizeIndexArray = (value) => {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+
+    return value
+      .map((item) => {
+        if (Number.isInteger(item)) {
+          return item;
+        }
+        if (typeof item === 'string' && /^-?\d+$/.test(item.trim())) {
+          return Number(item);
+        }
+        return null;
+      })
+      .filter((item) => item !== null);
+  };
+
   const applyStepState = (step) => {
-    const nextArray = Array.isArray(step?.result)
-      ? step.result.filter((value) => Number.isFinite(value))
-      : [];
+    const nextArray = normalizeNumberArray(step?.result ?? step?.current_state ?? []);
 
     if (nextArray.length > 0) {
       setDataArray(nextArray);
     }
 
-    const nextCompareIndices = Array.isArray(step?.compare_indices)
-      ? step.compare_indices.filter((value) => Number.isInteger(value))
-      : [];
-    const nextSwapIndices = Array.isArray(step?.swap_indices)
-      ? step.swap_indices.filter((value) => Number.isInteger(value))
-      : [];
+    const nextCompareIndices = normalizeIndexArray(step?.compare_indices ?? []);
+    const nextSwapIndices = normalizeIndexArray(step?.swap_indices ?? []);
 
     setCompareIndices(nextCompareIndices);
     setSwapIndices(nextSwapIndices);

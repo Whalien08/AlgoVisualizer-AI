@@ -61,6 +61,45 @@ def parse_json_block(text: str) -> Dict[str, Any]:
     return json.loads(text)
 
 
+def normalize_step_value(value: Any) -> Any:
+    if isinstance(value, list):
+        result = []
+        for item in value:
+            if isinstance(item, (int, float)) and not isinstance(item, bool):
+                result.append(int(item))
+            elif isinstance(item, str):
+                cleaned = item.strip()
+                if cleaned.lstrip("-").isdigit():
+                    result.append(int(cleaned))
+                else:
+                    try:
+                        result.append(int(float(cleaned)))
+                    except ValueError:
+                        result.append(cleaned)
+            else:
+                result.append(item)
+        return result
+    if isinstance(value, str):
+        cleaned = value.strip()
+        if cleaned.lstrip("-").isdigit():
+            return int(cleaned)
+        try:
+            return int(float(cleaned))
+        except ValueError:
+            return value
+    return value
+
+
+def normalize_step(step: Dict[str, Any], fallback: List[int]) -> Dict[str, Any]:
+    return {
+        "action": step.get("action", "STEP"),
+        "logic": step.get("logic", "Next step."),
+        "result": normalize_step_value(step.get("result") or step.get("current_state") or fallback),
+        "compare_indices": normalize_step_value(step.get("compare_indices") or []),
+        "swap_indices": normalize_step_value(step.get("swap_indices") or []),
+    }
+
+
 def build_fallback_plan(algorithm_name: str, data_structure: List[int]) -> Dict[str, Any]:
     intro = {
         "action": "INTRODUCTION",
@@ -168,20 +207,27 @@ async def generate_narration(state: AlgorithmState):
         agent_reply = agent_data.get("choices", [{}])[0].get("message", {}).get("content", "")
 
         step_data = parse_json_block(agent_reply)
-        intro = step_data.get("intro") or {
-            "action": "INTRODUCTION",
-            "logic": f"{state.algorithm_name} is about to be visualized.",
-            "result": list(state.data_structure),
-            "compare_indices": [],
-            "swap_indices": [],
-        }
+        intro = normalize_step(
+            step_data.get("intro") or {
+                "action": "INTRODUCTION",
+                "logic": f"{state.algorithm_name} is about to be visualized.",
+                "result": list(state.data_structure),
+                "compare_indices": [],
+                "swap_indices": [],
+            },
+            list(state.data_structure),
+        )
         steps = step_data.get("steps") or []
         if not steps:
             steps = [intro]
 
+        normalized_steps = [intro]
+        for step in steps:
+            normalized_steps.append(normalize_step(step, list(state.data_structure)))
+
         return {
             "intro": intro,
-            "steps": [intro, *steps],
+            "steps": normalized_steps,
         }
 
     except Exception as e:
