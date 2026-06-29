@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
 import useAlgorithmNarrator from './useAlgorithmNarrator';
 
 export default function App() {
@@ -12,33 +12,17 @@ export default function App() {
     algorithm,
     setAlgorithm,
     handleApplySettings,
-    handleNextStep
+    handleNextStep,
+    hasShownIntro,
+    compareIndices,
+    swapIndices
   } = useAlgorithmNarrator();
 
-  const [compareIndices, setCompareIndices] = useState([]);
-  const [swapIndices, setSwapIndices] = useState([]);
-  const previousArray = useRef(dataArray);
-
-  useEffect(() => {
-    const prev = previousArray.current;
-    const changedIndices = dataArray.reduce((indices, value, index) => {
-      if (prev[index] !== value) indices.push(index);
-      return indices;
-    }, []);
-
-    if (changedIndices.length > 0) {
-      setSwapIndices(changedIndices);
-      setCompareIndices([]);
-    }
-
-    previousArray.current = dataArray;
-  }, [dataArray]);
-
   const handleNextClicked = () => {
-    setCompareIndices([0, 1]);
-    setSwapIndices([]);
     handleNextStep();
   };
+
+  const isIntroPending = !hasShownIntro && currentStep === 0;
 
   return (
     <div style={{ padding: '40px', fontFamily: 'system-ui, sans-serif', maxWidth: '800px', margin: '0 auto' }}>
@@ -72,14 +56,32 @@ export default function App() {
       </div>
       
       <div className="array-container">
-        {dataArray.map((num, i) => (
-          <div
-            key={i}
-            className={`array-card ${compareIndices.includes(i) ? 'compare' : ''} ${swapIndices.includes(i) ? 'swap' : ''}`}
-          >
-            {num}
-          </div>
-        ))}
+        {dataArray.map((num, i) => {
+          const isCompared = compareIndices.includes(i);
+          const isSwapped = swapIndices.includes(i);
+
+          return (
+            <div key={i} className="array-item">
+              <div
+                className={`array-card ${isCompared ? 'compare' : ''} ${isSwapped ? 'swap' : ''}`}
+              >
+                {num}
+              </div>
+              {isCompared && (
+                <div className="compare-annotation">
+                  <div className="compare-line" />
+                  <span className="compare-label">Compared</span>
+                </div>
+              )}
+              {isSwapped && (
+                <div className="swap-annotation">
+                  <div className="swap-line" />
+                  <span className="swap-label">Swapped</span>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       <div style={{ marginBottom: '20px' }}>
@@ -91,7 +93,7 @@ export default function App() {
         disabled={isLoading}
         style={{ padding: '10px 20px', fontSize: '16px', cursor: 'pointer' }}
       >
-        {isLoading ? "AI is processing..." : "Next Step"}
+        {isLoading ? "AI is processing..." : isIntroPending ? "Start Algorithm" : "Next Step"}
       </button>
 
       <div style={{ marginTop: '30px', padding: '20px', backgroundColor: '#f5f5f5', borderRadius: '8px', borderLeft: '4px solid #0062ff' }}>
