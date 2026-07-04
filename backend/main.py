@@ -14,7 +14,7 @@ app = FastAPI(title="AlgoVisualizer AI Engine")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["http://localhost:5173", "http://localhost:5174"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -29,6 +29,10 @@ class AlgorithmState(BaseModel):
     phase: str
     data_structure: List[int]
     highlighted_indices: List[int]
+
+
+class ChatRequest(BaseModel):
+    message: str
 
 
 def get_iam_token(api_key: str) -> str:
@@ -100,6 +104,39 @@ def normalize_step(step: Dict[str, Any], fallback: List[int]) -> Dict[str, Any]:
         "pivot_indices": normalize_step_value(step.get("pivot_indices") or []),
         "partition_tree": step.get("partition_tree"),
     }
+
+
+def build_fallback_chat_reply(message: str) -> str:
+    lowered = message.lower()
+    if "merge" in lowered:
+        return (
+            f"Here is a clear explanation of your question about merge sort:\n\n"
+            "1. Split the list into smaller parts until each part is one element.\n"
+            "2. Merge the parts back together in sorted order.\n"
+            "3. Repeat until the full list is sorted.\n\n"
+            "Visual idea:\n"
+            "[8, 3, 2, 1] -> [8, 3] [2, 1] -> [3, 8] [1, 2] -> [1, 2, 3, 8]"
+        )
+    if "heap" in lowered:
+        return (
+            "Heap sort works by building a heap structure and repeatedly removing the largest value.\n\n"
+            "Visual idea:\n"
+            "Max heap: [10, 7, 5, 3, 1] -> swap root with last -> [1, 7, 5, 3, 10]"
+        )
+    if "cycle" in lowered:
+        return (
+            "Cycle sort places each value into its correct position by forming cycles of values.\n\n"
+            "Visual idea:\n"
+            "[4, 3, 2, 1] -> place 1 -> [1, 3, 2, 4] -> place 2 -> [1, 2, 3, 4]"
+        )
+    return (
+        f"Here is a concise explanation of '{message}':\n\n"
+        "- Break the problem into smaller parts.\n"
+        "- Study each part carefully.\n"
+        "- Combine the parts into a complete solution.\n\n"
+        "Visual idea:\n"
+        "Input -> Analyze -> Solve -> Verify"
+    )
 
 
 def build_deterministic_plan(algorithm_name: str, data_structure: List[int]) -> Dict[str, Any]:
@@ -281,6 +318,126 @@ def build_deterministic_plan(algorithm_name: str, data_structure: List[int]) -> 
         merge_sort(0, len(arr) - 1)
         steps.append(make_step("SORTED", "The array has been sorted.", arr, [], [], [], None))
 
+    elif name == "heap sort":
+        arr = list(data_structure)
+        n = len(arr)
+
+        def heapify(size: int, root: int):
+            largest = root
+            left = 2 * root + 1
+            right = 2 * root + 2
+            if left < size:
+                steps.append(make_step("COMPARE", f"Compared index {root} with its left child at index {left}.", arr, [root, left], [], []))
+                if arr[left] > arr[largest]:
+                    largest = left
+            if right < size:
+                steps.append(make_step("COMPARE", f"Compared index {largest} with its right child at index {right}.", arr, [largest, right], [], []))
+                if arr[right] > arr[largest]:
+                    largest = right
+            if largest != root:
+                arr[root], arr[largest] = arr[largest], arr[root]
+                steps.append(make_step("COMPARE_AND_SWAP", f"Swapped the largest value into position {root}.", arr, [root, largest], [root, largest], []))
+                heapify(size, largest)
+
+        for i in range(n // 2 - 1, -1, -1):
+            heapify(n, i)
+
+        for end in range(n - 1, 0, -1):
+            arr[0], arr[end] = arr[end], arr[0]
+            steps.append(make_step("COMPARE_AND_SWAP", f"Moved the current max into position {end}.", arr, [0, end], [0, end], []))
+            heapify(end, 0)
+
+        steps.append(make_step("SORTED", "The array has been sorted.", arr, [], [], []))
+
+    elif name == "cycle sort":
+        arr = list(data_structure)
+        n = len(arr)
+
+        for cycle_start in range(0, n - 1):
+            item = arr[cycle_start]
+            pos = cycle_start
+            for i in range(cycle_start + 1, n):
+                if arr[i] < item:
+                    pos += 1
+
+            if pos == cycle_start:
+                steps.append(make_step("COMPARE", f"The value at index {cycle_start} is already in the correct cycle position.", arr, [cycle_start], [], []))
+                continue
+
+            while item == arr[pos]:
+                pos += 1
+
+            if pos != cycle_start:
+                arr[pos], item = item, arr[pos]
+                steps.append(make_step("COMPARE_AND_SWAP", f"Moved the item into its cycle position at index {pos}.", arr, [cycle_start, pos], [cycle_start, pos], []))
+
+            while pos != cycle_start:
+                pos = cycle_start
+                for i in range(cycle_start + 1, n):
+                    if arr[i] < item:
+                        pos += 1
+                while item == arr[pos]:
+                    pos += 1
+                if pos != cycle_start:
+                    arr[pos], item = item, arr[pos]
+                    steps.append(make_step("COMPARE_AND_SWAP", f"Placed the next item into position {pos}.", arr, [cycle_start, pos], [cycle_start, pos], []))
+
+            arr[cycle_start] = item
+            steps.append(make_step("COMPARE", f"Placed the value for cycle {cycle_start} into its final position.", arr, [cycle_start], [], []))
+
+        steps.append(make_step("SORTED", "The array has been sorted.", arr, [], [], []))
+
+    elif name == "3-way merge sort":
+        arr = list(data_structure)
+
+        def build_tree(low: int, high: int, operation: str = "Split", message: str | None = None):
+            if low > high:
+                return None
+            if low == high:
+                return {
+                    "label": f"[{low},{high}]",
+                    "values": [arr[low]],
+                    "operation": operation,
+                    "message": message or f"{operation} the single element at index {low}.",
+                    "children": []
+                }
+            span = high - low + 1
+            mid1 = low + span // 3
+            mid2 = low + 2 * span // 3
+            return {
+                "label": f"[{low},{high}]",
+                "values": arr[low:high + 1],
+                "operation": operation,
+                "message": message or f"{operation} the range [{low},{high}] into three parts.",
+                "children": [
+                    build_tree(low, mid1 - 1, operation, message),
+                    build_tree(mid1, mid2 - 1, operation, message),
+                    build_tree(mid2, high, operation, message),
+                ],
+            }
+
+        def merge_three(low: int, high: int):
+            if low >= high:
+                return
+            span = high - low + 1
+            mid1 = low + span // 3
+            mid2 = low + 2 * span // 3
+            split_tree = build_tree(low, high, "Split", f"Split the range [{low},{high}] into three parts.")
+            steps.append(make_step("SPLIT", f"Split the range [{low},{high}] into three parts.", arr, [], [], [], split_tree))
+            merge_three(low, mid1 - 1)
+            merge_three(mid1, mid2 - 1)
+            merge_three(mid2, high)
+            left = arr[low:mid1]
+            middle = arr[mid1:mid2]
+            right = arr[mid2:high + 1]
+            merged = sorted(left + middle + right)
+            arr[low:high + 1] = merged
+            merge_tree = build_tree(low, high, "Merge", f"Merged the three sorted parts of [{low},{high}] into one sorted range.")
+            steps.append(make_step("MERGE", f"Merged the three sorted parts for the range [{low},{high}].", arr, [low, high], [low, high], [], merge_tree))
+
+        merge_three(0, len(arr) - 1)
+        steps.append(make_step("SORTED", "The array has been sorted.", arr, [], [], [], None))
+
     elif name == "quick sort":
         arr = list(data_structure)
 
@@ -381,12 +538,12 @@ def build_deterministic_plan(algorithm_name: str, data_structure: List[int]) -> 
 
 @app.post("/api/v1/narrate")
 async def generate_narration(state: AlgorithmState):
+    supported_algorithms = {"bubble sort", "selection sort", "insertion sort", "merge sort", "3-way merge sort", "heap sort", "cycle sort", "quick sort"}
+    if state.algorithm_name.lower() in supported_algorithms:
+        return build_deterministic_plan(state.algorithm_name, state.data_structure)
+
     api_key = os.getenv("WATSONX_APIKEY")
     if not api_key:
-        raise HTTPException(status_code=500, detail="API Key missing!")
-
-    supported_algorithms = {"bubble sort", "selection sort", "insertion sort", "merge sort", "quick sort"}
-    if state.algorithm_name.lower() in supported_algorithms:
         return build_deterministic_plan(state.algorithm_name, state.data_structure)
 
     try:
@@ -444,3 +601,30 @@ async def generate_narration(state: AlgorithmState):
     except Exception as e:
         print(f"DEBUG ERROR: {str(e)}")
         return build_deterministic_plan(state.algorithm_name, state.data_structure)
+
+
+@app.post("/api/v1/chat")
+async def chat_with_ai(request: ChatRequest):
+    api_key = os.getenv("WATSONX_APIKEY")
+    if not api_key:
+        return {"reply": build_fallback_chat_reply(request.message)}
+
+    try:
+        access_token = get_iam_token(api_key)
+        BASE_URL = "https://api.us-south.watson-orchestrate.cloud.ibm.com/instances/d781388e-1567-4604-b277-a72a9f74fc4e"
+        AGENT_ID = "4defadc3-2aa7-4c81-ae06-eb8d799f3308"
+        ENDPOINT = BASE_URL + "/v1/orchestrate/" + AGENT_ID + "/chat/completions"
+        headers = {"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"}
+        payload = {
+            "messages": [{"role": "user", "content": f"Answer this question in detail and include a simple visual representation where helpful. Question: {request.message}"}],
+            "stream": False,
+        }
+        response = REQUEST_SESSION.post(ENDPOINT, json=payload, headers=headers, timeout=(10, 30))
+        if not response.ok:
+            return {"reply": build_fallback_chat_reply(request.message)}
+        data = response.json()
+        reply = data.get("choices", [{}])[0].get("message", {}).get("content", "")
+        return {"reply": reply}
+    except Exception as e:
+        print(f"DEBUG CHAT ERROR: {str(e)}")
+        return {"reply": build_fallback_chat_reply(request.message)}
