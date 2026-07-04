@@ -6,8 +6,11 @@ import AIPage from './AIPage';
 export default function App() {
   const {
     narrationText,
+    introText,
     isLoading,
     currentStep,
+    stepCount,
+    isComplete,
     dataArray,
     customInput,
     setCustomInput,
@@ -15,11 +18,17 @@ export default function App() {
     setAlgorithm,
     handleApplySettings,
     handleNextStep,
+    handlePrevStep,
+    handleSeekStep,
+    handleJumpToStart,
+    handleJumpToEnd,
+    handlePlayPause,
+    isPlaying,
     hasShownIntro,
     compareIndices,
     swapIndices,
     pivotIndices,
-    partitionTree
+    partitionTree,
   } = useAlgorithmNarrator();
 
   const [activePage, setActivePage] = useState('visualizer');
@@ -36,8 +45,11 @@ export default function App() {
     <div className="app-shell">
       <VisualizerPage
         narrationText={narrationText}
+        introText={introText}
         isLoading={isLoading}
         currentStep={currentStep}
+        stepCount={stepCount}
+        isComplete={isComplete}
         dataArray={dataArray}
         customInput={customInput}
         setCustomInput={setCustomInput}
@@ -45,6 +57,12 @@ export default function App() {
         setAlgorithm={setAlgorithm}
         handleApplySettings={handleApplySettings}
         handleNextStep={handleNextStep}
+        handlePrevStep={handlePrevStep}
+        handleSeekStep={handleSeekStep}
+        handleJumpToStart={handleJumpToStart}
+        handleJumpToEnd={handleJumpToEnd}
+        handlePlayPause={handlePlayPause}
+        isPlaying={isPlaying}
         hasShownIntro={hasShownIntro}
         compareIndices={compareIndices}
         swapIndices={swapIndices}

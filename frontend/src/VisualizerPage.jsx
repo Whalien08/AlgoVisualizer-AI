@@ -2,8 +2,11 @@ import React from 'react';
 
 export default function VisualizerPage({
   narrationText,
+  introText,
   isLoading,
   currentStep,
+  stepCount,
+  isComplete,
   dataArray,
   customInput,
   setCustomInput,
@@ -11,6 +14,12 @@ export default function VisualizerPage({
   setAlgorithm,
   handleApplySettings,
   handleNextStep,
+  handlePrevStep,
+  handleSeekStep,
+  handleJumpToStart,
+  handleJumpToEnd,
+  handlePlayPause,
+  isPlaying,
   hasShownIntro,
   compareIndices,
   swapIndices,
@@ -18,17 +27,9 @@ export default function VisualizerPage({
   partitionTree,
   onOpenAI,
 }) {
-  const handleNextClicked = () => {
-    handleNextStep();
-  };
-
   const renderPartitionNode = (node) => {
-    if (!node) {
-      return null;
-    }
-
+    if (!node) return null;
     const children = Array.isArray(node.children) ? node.children.filter(Boolean) : [];
-
     return (
       <div className="partition-node-wrapper">
         <div className="partition-node">
@@ -57,8 +58,16 @@ export default function VisualizerPage({
     );
   };
 
-  const isIntroPending = !hasShownIntro;
-  const visiblePartitionTree = algorithm?.toLowerCase() === 'merge sort' ? partitionTree : null;
+  const treeAlgos = ['merge sort', '3-way merge sort', 'quick sort'];
+  const visiblePartitionTree = treeAlgos.includes(algorithm?.toLowerCase()) ? partitionTree : null;
+
+  // Transport bar derived state
+  const hasSteps = hasShownIntro && stepCount > 0;
+  const atStart = currentStep === 0;
+  const atEnd = isComplete;
+  const sliderMax = stepCount > 1 ? stepCount - 1 : 1;
+
+  const playLabel = isLoading ? '⏳' : isPlaying ? '⏸' : hasShownIntro ? '▶' : '▶ Start';
 
   return (
     <>
@@ -94,9 +103,11 @@ export default function VisualizerPage({
             type="text"
             value={customInput}
             onChange={(e) => setCustomInput(e.target.value)}
-            style={{ width: '200px', padding: '4px' }}
+            onKeyDown={(e) => e.key === 'Enter' && handleApplySettings()}
+            className="array-text-input"
+            placeholder="e.g. 12, 45, 23, 7, 50"
           />
-          <button onClick={handleApplySettings} style={{ marginLeft: '10px', padding: '4px 10px' }}>
+          <button className="btn-secondary" onClick={handleApplySettings}>
             Apply
           </button>
         </div>
@@ -107,7 +118,6 @@ export default function VisualizerPage({
           const isCompared = compareIndices.includes(i);
           const isSwapped = swapIndices.includes(i);
           const isPivot = pivotIndices.includes(i);
-
           return (
             <div key={i} className="array-item">
               <div className={`array-card ${isCompared ? 'compare' : ''} ${isSwapped ? 'swap' : ''} ${isPivot ? 'pivot' : ''}`}>
@@ -143,19 +153,73 @@ export default function VisualizerPage({
         </div>
       )}
 
-      <div className="step-counter-row">
-        <p>
-          <strong>Step Counter:</strong> {hasShownIntro ? currentStep : 'Intro'}
-        </p>
-      </div>
+      {/* ── Transport controls ─────────────────────────────────────── */}
+      <div className="transport">
+        <div className="transport-buttons">
+          <button
+            className="transport-btn"
+            onClick={handleJumpToStart}
+            disabled={isLoading || !hasSteps || atStart}
+            title="Jump to first step"
+          >⏮</button>
 
-      <button onClick={handleNextClicked} disabled={isLoading} style={{ padding: '10px 20px', fontSize: '16px', cursor: 'pointer' }}>
-        {isLoading ? 'AI is processing...' : isIntroPending ? 'Start Algorithm' : 'Next Step'}
-      </button>
+          <button
+            className="transport-btn"
+            onClick={handlePrevStep}
+            disabled={isLoading || !hasSteps || atStart}
+            title="Previous step"
+          >◀</button>
 
-      <div className="narration-card">
-        <p>{narrationText}</p>
-      </div>
+          <button
+            className="transport-btn transport-btn--play"
+            onClick={handlePlayPause}
+            disabled={isLoading || (hasSteps && atEnd)}
+            title={isPlaying ? 'Pause' : 'Play'}
+          >{playLabel}</button>
+
+          <button
+            className="transport-btn"
+            onClick={handleNextStep}
+            disabled={isLoading || (hasSteps && atEnd)}
+            title="Next step"
+          >▶</button>
+
+          <button
+            className="transport-btn"
+            onClick={handleJumpToEnd}
+            disabled={isLoading || !hasSteps || atEnd}
+            title="Jump to last step"
+          >⏭</button>
+        </div>
+
+        {/* Slider — only visible once a plan has loaded */}
+        {hasSteps && (
+          <div className="transport-slider-row">
+            <span className="transport-step-label">
+              Step {currentStep + 1} / {stepCount}
+            </span>
+            <input
+              type="range"
+              className="transport-slider"
+              min={0}
+              max={sliderMax}
+              value={currentStep}
+              style={{ '--pct': `${(currentStep / sliderMax) * 100}%` }}
+              onChange={(e) => handleSeekStep(Number(e.target.value))}
+            />
+          </div>
+        )}
+        </div>
+            <div className="narration-card">
+            <p>{narrationText}</p>
+        </div>
+        
+      {introText && (
+        <div className="intro-card">
+          <div className="intro-card-title">{algorithm} — How it works</div>
+          <p>{introText}</p>
+        </div>
+      )}
     </>
   );
 }

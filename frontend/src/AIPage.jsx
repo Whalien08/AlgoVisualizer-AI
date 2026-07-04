@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export default function AIPage({ onBack }) {
   const [chatInput, setChatInput] = useState('');
@@ -6,6 +8,12 @@ export default function AIPage({ onBack }) {
     { role: 'assistant', content: 'Ask me anything about sorting, data structures, or algorithms and I will explain it clearly.' }
   ]);
   const [isChatLoading, setIsChatLoading] = useState(false);
+  const bottomRef = useRef(null);
+
+  // Scroll the page to the newest message whenever the list changes
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatMessages]);
 
   const handleSendChat = async () => {
     const message = chatInput.trim();
@@ -41,6 +49,7 @@ export default function AIPage({ onBack }) {
 
   return (
     <div className="ai-page">
+      {/* Page header — scrolls away with the content */}
       <div className="page-header">
         <div>
           <h1>AI Assistant</h1>
@@ -51,15 +60,28 @@ export default function AIPage({ onBack }) {
         </button>
       </div>
 
+      {/* Message history — no fixed height, grows with content */}
       <div className="chat-panel">
         <div className="chat-panel-header">Interactive AI support</div>
         <div className="chat-messages">
           {chatMessages.map((message, index) => (
             <div key={`${message.role}-${index}`} className={`chat-bubble ${message.role}`}>
-              {message.content}
+              {message.role === 'assistant' ? (
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {message.content}
+                </ReactMarkdown>
+              ) : (
+                message.content
+              )}
             </div>
           ))}
+          {/* Invisible anchor so new messages scroll into view */}
+          <div ref={bottomRef} />
         </div>
+      </div>
+
+      {/* Input bar — sticky to the bottom of the viewport */}
+      <div className="chat-input-bar">
         <div className="chat-input-row">
           <input
             value={chatInput}

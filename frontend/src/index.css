@@ -67,6 +67,12 @@ body {
   padding: 36px;
 }
 
+/* When the AI page is active the card needs extra room at the bottom
+   so the last bubble is never hidden behind the sticky input bar. */
+#root > div:has(.ai-page) {
+  padding-bottom: 100px;
+}
+
 .app-shell {
   width: 100%;
 }
@@ -422,18 +428,167 @@ button + .action {
   }
 }
 
-.step-counter-row {
-  margin-bottom: 24px;
+/* ── Array input + Apply button ───────────────────────────────── */
+.array-text-input {
+  width: 220px;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--accent);
+  border: 1.5px solid var(--accent);
+  box-shadow: none;
+  padding: 10px 18px;
+  font-weight: 600;
+}
+.btn-secondary:hover:not(:disabled) {
+  background: var(--accent-soft);
+  transform: none;
+  filter: none;
+}
+
+/* ── Transport bar ─────────────────────────────────────────────── */
+.transport {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 8px 0 4px;
+}
+
+.transport-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.transport-btn {
+  min-width: 44px;
+  padding: 10px 14px;
+  font-size: 1rem;
+  border-radius: 12px;
+  background: var(--surface-muted);
+  color: var(--text);
+  border: 1px solid var(--border);
+  box-shadow: none;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.transport-btn:hover:not(:disabled) {
+  background: var(--accent-soft);
+  color: var(--accent);
+  transform: none;
+  filter: none;
+}
+.transport-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* Play/Pause gets the accent fill */
+.transport-btn--play {
+  min-width: 100px;
+  background: linear-gradient(135deg, var(--accent), #6366f1);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.22);
+  font-weight: 700;
+}
+.transport-btn--play:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--accent), #6366f1);
+  color: #fff;
+  filter: brightness(1.08);
+}
+
+/* Slider row */
+.transport-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.transport-step-label {
+  font-size: 0.85rem;
+  font-weight: 600;
   color: var(--muted);
-  text-align: left;
+  white-space: nowrap;
+  min-width: 90px;
+}
+
+.transport-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--border);
+  outline: none;
+  cursor: pointer;
+  /* Filled portion via a gradient driven by --pct set inline */
+  background: linear-gradient(
+    to right,
+    var(--accent) 0%,
+    var(--accent) var(--pct, 0%),
+    var(--border) var(--pct, 0%),
+    var(--border) 100%
+  );
+  transition: background 0.1s;
+}
+.transport-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid #fff;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.35);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.transport-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+.transport-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid #fff;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.35);
+  cursor: pointer;
+}
+
+.intro-card {
+  margin-top: 24px;
+  padding: 20px 22px;
+  border-radius: 16px;
+  border: 1px solid rgba(79, 70, 229, 0.18);
+}
+
+.intro-card-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.intro-card p {
+  margin: 0;
+  color: #0d1117;
+  font-weight: bold;
+  line-height: 1.75;
+  white-space: pre-line;
+  font-size: 0.95rem;
 }
 
 .narration-card {
   margin-top: 30px;
   padding: 20px;
-  background-color: #f5f5f5;
+  background-color: #10042b;
   border-radius: 8px;
-  border-left: 4px solid #0062ff;
+  border-left: 4px solid #000b1c;
 }
 
 .narration-card p {
@@ -466,7 +621,7 @@ button + .action {
 }
 
 .chat-panel {
-  margin: 16px 0 24px;
+  margin: 16px 0 0;
   border: 1px solid var(--border);
   border-radius: 18px;
   background: var(--surface-muted);
@@ -482,32 +637,146 @@ button + .action {
   color: var(--accent);
 }
 
+/* No height cap — grows with content, page scrollbar handles overflow */
 .chat-messages {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: 260px;
-  overflow-y: auto;
 }
 
 .chat-bubble {
-  padding: 10px 12px;
+  padding: 10px 14px;
   border-radius: 12px;
   max-width: 90%;
-  white-space: pre-wrap;
-  line-height: 1.5;
+  line-height: 1.6;
+  font-size: 0.95rem;
 }
 
-.chat-bubble.assistant {
-  background: lightblue;
-  color: black;
-  align-self: flex-start;
-}
-
+/* User messages: plain text, keep whitespace exactly as typed */
 .chat-bubble.user {
   background: var(--accent);
   color: white;
   align-self: flex-end;
+  white-space: pre-wrap;
+}
+
+/* ── Assistant bubble ─────────────────────────────────────── */
+.chat-bubble.assistant {
+  color: whitesmoke;
+  align-self: flex-start;
+}
+
+/* Strip the default margins react-markdown adds to the first/last
+   block elements so the bubble padding alone controls the spacing. */
+.chat-bubble.assistant > * {
+  margin-top: 0;
+}
+.chat-bubble.assistant > *:last-child {
+  margin-bottom: 0;
+}
+
+/* Paragraphs */
+.chat-bubble.assistant p {
+  margin: 0 0 0.6em;
+}
+
+/* Headings */
+.chat-bubble.assistant h1,
+.chat-bubble.assistant h2,
+.chat-bubble.assistant h3,
+.chat-bubble.assistant h4 {
+  margin: 0.75em 0 0.35em;
+  line-height: 1.25;
+  font-weight: 700;
+  color: #0d1117;
+}
+.chat-bubble.assistant h1 { font-size: 1.15em; }
+.chat-bubble.assistant h2 { font-size: 1.05em; }
+.chat-bubble.assistant h3 { font-size: 0.98em; }
+.chat-bubble.assistant h4 { font-size: 0.93em; }
+
+/* Inline code */
+.chat-bubble.assistant code {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 0.88em;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+/* Fenced code blocks */
+.chat-bubble.assistant pre {
+  background: #0d1117;
+  color: #e6edf3;
+  border-radius: 8px;
+  padding: 12px 14px;
+  overflow-x: auto;
+  margin: 0.6em 0;
+  font-size: 0.85em;
+  line-height: 1.55;
+}
+.chat-bubble.assistant pre code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+  color: inherit;
+}
+
+/* Blockquote */
+.chat-bubble.assistant blockquote {
+  margin: 0.5em 0;
+  padding: 4px 12px;
+  border-left: 3px solid rgba(0, 0, 0, 0.25);
+  color: #374151;
+}
+
+/* Lists */
+.chat-bubble.assistant ul,
+.chat-bubble.assistant ol {
+  margin: 0.4em 0 0.6em;
+  padding-left: 1.4em;
+}
+.chat-bubble.assistant li {
+  margin-bottom: 0.25em;
+}
+
+/* Horizontal rule */
+.chat-bubble.assistant hr {
+  border: none;
+  border-top: 1px solid rgba(0, 0, 0, 0.15);
+  margin: 0.6em 0;
+}
+
+/* ── GFM Tables ───────────────────────────────────────────── */
+.chat-bubble.assistant table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.6em 0;
+  font-size: 0.88em;
+}
+.chat-bubble.assistant th,
+.chat-bubble.assistant td {
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  padding: 6px 10px;
+  text-align: left;
+}
+.chat-bubble.assistant th {
+  background: rgba(0, 0, 0, 0.08);
+  font-weight: 700;
+}
+.chat-bubble.assistant tr:nth-child(even) td {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+/* Sticky input bar — fixed to the bottom of the viewport */
+.chat-input-bar {
+  position: sticky;
+  bottom: 0;
+  /* Stretch edge-to-edge past the card's padding so it looks flush */
+  margin: 0 -36px -100px;
+  padding: 14px 36px 20px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
 }
 
 .chat-input-row {
@@ -517,7 +786,8 @@ button + .action {
 
 .chat-input-row input {
   flex: 1;
-  background-color: lightskyblue;
+  background-color: #111729;
+  color: whitesmoke;
   border-radius: 10px;
 }
 
@@ -551,6 +821,11 @@ button + .action {
 
   #root > div {
     padding: 28px 22px;
+  }
+
+  .chat-input-bar {
+    margin: 0 -22px -100px;
+    padding: 14px 22px 20px;
   }
 
   .control-stack > div {
