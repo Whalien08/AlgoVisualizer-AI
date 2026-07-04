@@ -290,7 +290,7 @@ def build_deterministic_plan(algorithm_name: str, data_structure: List[int]) -> 
                 "values": arr[low:high + 1],
                 "operation": operation,
                 "message": message or f"{operation} the range [{low},{high}] into left and right halves.",
-                "children": [build_tree(low, mid, operation, message), build_tree(mid + 1, high, operation, message)]
+                "children": [build_tree(low, mid, operation, None), build_tree(mid + 1, high, operation, None)]
             }
 
         def merge_sort(low: int, high: int):
@@ -421,9 +421,9 @@ def build_deterministic_plan(algorithm_name: str, data_structure: List[int]) -> 
                 "operation": operation,
                 "message": message or f"{operation} the range [{low},{high}] into three parts.",
                 "children": [
-                    build_tree(low, mid1 - 1, operation, message),
-                    build_tree(mid1, mid2 - 1, operation, message),
-                    build_tree(mid2, high, operation, message),
+                    build_tree(low, mid1 - 1, operation, None),
+                    build_tree(mid1, mid2 - 1, operation, None),
+                    build_tree(mid2, high, operation, None),
                 ],
             }
 

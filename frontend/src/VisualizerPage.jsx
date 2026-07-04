@@ -1,5 +1,103 @@
 import React from 'react';
 
+// ── Partition-tree SVG layout ─────────────────────────────────────────────
+// Constants that control spacing (px).
+const NODE_W = 160;   // node box width
+const NODE_H = 80;    // node box height (approximate; text wraps inside)
+const H_GAP  = 28;    // horizontal gap between sibling subtrees
+const V_GAP  = 56;    // vertical gap between a parent bottom and child top
+
+/**
+ * Measure phase — returns a layout node with:
+ *   x      : centre x of this node relative to the subtree's own left edge
+ *   width  : total pixel width of the subtree (including children)
+ *   depth  : depth from root (0-based), used to compute y
+ *   node   : original data node
+ *   kids   : laid-out children
+ */
+function measure(node, depth = 0) {
+  if (!node) return null;
+  const children = (node.children || []).filter(Boolean).map(c => measure(c, depth + 1));
+
+  let width;
+  let x;
+
+  if (children.length === 0) {
+    width = NODE_W;
+    x = NODE_W / 2;
+  } else {
+    // Total width = sum of children widths + gaps between them
+    const totalKidW = children.reduce((s, k) => s + k.width, 0);
+    width = totalKidW + H_GAP * (children.length - 1);
+    // Centre x = midpoint of leftmost child centre and rightmost child centre
+    // (which equals half of total width once we position them below)
+    x = width / 2;
+  }
+
+  return { node, depth, x, width, kids: children };
+}
+
+/**
+ * Position phase — walk the measured tree and assign absolute (cx, cy) to
+ * every node, where cx/cy are the centre coordinates of the node box.
+ * offsetX is the absolute x of this subtree's left edge.
+ */
+function position(laid, offsetX = 0) {
+  const cx = offsetX + laid.x;
+  const cy = laid.depth * (NODE_H + V_GAP) + NODE_H / 2;
+
+  let childOffset = offsetX;
+  const positionedKids = laid.kids.map(k => {
+    const pk = position(k, childOffset);
+    childOffset += k.width + H_GAP;
+    return pk;
+  });
+
+  return { ...laid, cx, cy, kids: positionedKids };
+}
+
+/**
+ * Flatten the positioned tree into two arrays:
+ *   nodes  : { key, cx, cy, node }
+ *   edges  : { x1, y1, x2, y2 }  (parent-bottom → child-top)
+ */
+function flatten(ptree, nodes = [], edges = []) {
+  nodes.push({ key: ptree.node.label + '_' + ptree.cx, cx: ptree.cx, cy: ptree.cy, node: ptree.node });
+  for (const kid of ptree.kids) {
+    edges.push({
+      x1: ptree.cx,
+      y1: ptree.cy + NODE_H / 2,        // parent bottom
+      x2: kid.cx,
+      y2: kid.cy - NODE_H / 2,          // child top
+    });
+    flatten(kid, nodes, edges);
+  }
+  return { nodes, edges };
+}
+
+/** Build an SVG elbow path: drop vertically to midpoint, step horizontally, drop to child. */
+function elbowPath(x1, y1, x2, y2) {
+  const midY = (y1 + y2) / 2;
+  return `M ${x1} ${y1} L ${x1} ${midY} L ${x2} ${midY} L ${x2} ${y2}`;
+}
+
+/** Top-level: take raw tree data, return everything needed to render. */
+function layoutTree(root) {
+  if (!root) return null;
+  const measured  = measure(root);
+  const posed     = position(measured, 0);
+  const { nodes, edges } = flatten(posed);
+
+  // SVG canvas size
+  const svgW = measured.width;
+  const depth = Math.max(...nodes.map(n => n.cy)) + NODE_H / 2;
+  const svgH  = depth;
+
+  return { nodes, edges, svgW, svgH };
+}
+
+// ── Component ─────────────────────────────────────────────────────────────
+
 export default function VisualizerPage({
   narrationText,
   introText,
@@ -27,33 +125,55 @@ export default function VisualizerPage({
   partitionTree,
   onOpenAI,
 }) {
-  const renderPartitionNode = (node) => {
-    if (!node) return null;
-    const children = Array.isArray(node.children) ? node.children.filter(Boolean) : [];
+  const renderPartitionTree = (root) => {
+    const layout = layoutTree(root);
+    if (!layout) return null;
+    const { nodes, edges, svgW, svgH } = layout;
+
     return (
-      <div className="partition-node-wrapper">
-        <div className="partition-node">
-          <div className="partition-node-label">{node.label || 'Partition'}</div>
-          {node.operation && <div className="partition-node-operation">{node.operation}</div>}
-          {node.message && <div className="partition-node-message">{node.message}</div>}
-          <div className="partition-values">
-            {(node.values || []).map((value, index) => (
-              <span key={`${node.label}-${index}`} className="partition-value">{value}</span>
-            ))}
+      <div className="partition-svg-wrap" style={{ width: svgW, height: svgH, position: 'relative' }}>
+        {/* SVG connector lines — rendered first so they sit behind the nodes */}
+        <svg
+          className="partition-svg"
+          width={svgW}
+          height={svgH}
+          style={{ position: 'absolute', top: 0, left: 0, overflow: 'visible', pointerEvents: 'none' }}
+        >
+          {edges.map((e, i) => (
+            <path
+              key={i}
+              d={elbowPath(e.x1, e.y1, e.x2, e.y2)}
+              fill="none"
+              stroke="rgba(79,70,229,0.35)"
+              strokeWidth={1.5}
+              strokeLinecap="round"
+            />
+          ))}
+        </svg>
+
+        {/* Node boxes — absolutely positioned over the SVG */}
+        {nodes.map(({ key, cx, cy, node }) => (
+          <div
+            key={key}
+            className="partition-node"
+            style={{
+              position: 'absolute',
+              left: cx - NODE_W / 2,
+              top:  cy - NODE_H / 2,
+              width: NODE_W,
+              minHeight: NODE_H,
+            }}
+          >
+            <div className="partition-node-label">{node.label || 'Partition'}</div>
+            {node.operation && <div className="partition-node-operation">{node.operation}</div>}
+            {node.message && <div className="partition-node-message">{node.message}</div>}
+            <div className="partition-values">
+              {(node.values || []).map((v, i) => (
+                <span key={i} className="partition-value">{v}</span>
+              ))}
+            </div>
           </div>
-        </div>
-        {children.length > 0 && (
-          <div className="partition-children">
-            {children.map((child, index) => (
-              <div
-                key={`${node.label}-child-${index}`}
-                className={`partition-child ${index === 0 ? 'partition-child-left' : 'partition-child-right'}`}
-              >
-                {renderPartitionNode(child)}
-              </div>
-            ))}
-          </div>
-        )}
+        ))}
       </div>
     );
   };
@@ -149,7 +269,7 @@ export default function VisualizerPage({
       {visiblePartitionTree && (
         <div className="partition-tree">
           <div className="partition-tree-title">Partition view</div>
-          {renderPartitionNode(visiblePartitionTree)}
+          {renderPartitionTree(visiblePartitionTree)}
         </div>
       )}
 
