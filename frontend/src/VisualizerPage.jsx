@@ -1,4 +1,5 @@
 import React from 'react';
+import PseudocodePane from './PseudocodePane';
 
 // ── Partition-tree SVG layout ─────────────────────────────────────────────
 // Constants that control spacing (px).
@@ -100,6 +101,7 @@ function layoutTree(root) {
 
 export default function VisualizerPage({
   narrationText,
+  currentAction,
   introText,
   isLoading,
   currentStep,
@@ -233,45 +235,58 @@ export default function VisualizerPage({
         </div>
       </div>
 
-      <div className="array-container">
-        {dataArray.map((num, i) => {
-          const isCompared = compareIndices.includes(i);
-          const isSwapped = swapIndices.includes(i);
-          const isPivot = pivotIndices.includes(i);
-          return (
-            <div key={i} className="array-item">
-              <div className={`array-card ${isCompared ? 'compare' : ''} ${isSwapped ? 'swap' : ''} ${isPivot ? 'pivot' : ''}`}>
-                {num}
-              </div>
-              {isCompared && (
-                <div className="compare-annotation">
-                  <div className="compare-line" />
-                  <span className="compare-label">Compared</span>
+      {/* ── Dual-pane: visualizer left, pseudocode right ──────────── */}
+      <div className="viz-dual-pane">
+        <div className="viz-pane">
+          <div className="array-container">
+            {dataArray.map((num, i) => {
+              const isCompared = compareIndices.includes(i);
+              const isSwapped = swapIndices.includes(i);
+              const isPivot = pivotIndices.includes(i);
+              return (
+                <div key={i} className="array-item">
+                  <div className={`array-card ${isCompared ? 'compare' : ''} ${isSwapped ? 'swap' : ''} ${isPivot ? 'pivot' : ''}`}>
+                    {num}
+                  </div>
+                  {isCompared && (
+                    <div className="compare-annotation">
+                      <div className="compare-line" />
+                      <span className="compare-label">Compared</span>
+                    </div>
+                  )}
+                  {isPivot && (
+                    <div className="pivot-annotation">
+                      <div className="pivot-line" />
+                      <span className="pivot-label">Pivot</span>
+                    </div>
+                  )}
+                  {isSwapped && (
+                    <div className="swap-annotation">
+                      <div className="swap-line" />
+                      <span className="swap-label">Swapped</span>
+                    </div>
+                  )}
                 </div>
-              )}
-              {isPivot && (
-                <div className="pivot-annotation">
-                  <div className="pivot-line" />
-                  <span className="pivot-label">Pivot</span>
-                </div>
-              )}
-              {isSwapped && (
-                <div className="swap-annotation">
-                  <div className="swap-line" />
-                  <span className="swap-label">Swapped</span>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+              );
+            })}
+          </div>
 
-      {visiblePartitionTree && (
-        <div className="partition-tree">
-          <div className="partition-tree-title">Partition view</div>
-          {renderPartitionTree(visiblePartitionTree)}
+          {visiblePartitionTree && (
+            <div className="partition-tree">
+              <div className="partition-tree-title">Partition view</div>
+              {renderPartitionTree(visiblePartitionTree)}
+            </div>
+          )}
         </div>
-      )}
+
+    </div>
+      <div>
+        <PseudocodePane
+          algorithm={algorithm}
+          action={currentAction}
+          hasStarted={hasShownIntro}
+        />
+      </div>
 
       {/* ── Transport controls ─────────────────────────────────────── */}
       <div className="transport">
@@ -312,7 +327,6 @@ export default function VisualizerPage({
           >⏭</button>
         </div>
 
-        {/* Slider — only visible once a plan has loaded */}
         {hasSteps && (
           <div className="transport-slider-row">
             <span className="transport-step-label">
@@ -329,11 +343,12 @@ export default function VisualizerPage({
             />
           </div>
         )}
-        </div>
-            <div className="narration-card">
-            <p>{narrationText}</p>
-        </div>
-        
+      </div>
+
+      <div className="narration-card">
+        <p>{narrationText}</p>
+      </div>
+
       {introText && (
         <div className="intro-card">
           <div className="intro-card-title">{algorithm} — How it works</div>

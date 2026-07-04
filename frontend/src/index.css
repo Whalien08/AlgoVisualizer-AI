@@ -166,6 +166,127 @@ button + .action {
   min-width: 170px;
 }
 
+/* ── Dual-pane layout ──────────────────────────────────────────────── */
+.viz-dual-pane {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 20px;
+  align-items: start;
+  margin: 0 0 28px;
+}
+
+.viz-pane {
+  min-width: 0; /* allow grid cell to shrink below content width */
+}
+
+/* Stack vertically on narrow screens */
+@media (max-width: 820px) {
+  .viz-dual-pane {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Pseudocode pane ────────────────────────────────────────────────── */
+.pseudocode-pane {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #0d1117;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  /* Fixed height so it doesn't shift layout as the highlighted line changes;
+     internal scroll keeps all lines reachable */
+  height: 380px;
+  position: sticky;
+  top: 24px; /* sticks while the visualizer side scrolls */
+}
+
+.pseudocode-pane--empty {
+  background: var(--surface-muted);
+  padding: 16px;
+  align-items: center;
+  justify-content: center;
+}
+
+.pseudocode-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: #161b22;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #8b949e;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.pseudocode-action-tag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #58a6ff;
+  background: rgba(88, 166, 255, 0.1);
+  border: 1px solid rgba(88, 166, 255, 0.25);
+  border-radius: 6px;
+  padding: 2px 7px;
+}
+
+.pseudocode-pre {
+  margin: 0;
+  padding: 10px 0;
+  overflow-y: auto;
+  flex: 1;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 0.78rem;
+  line-height: 1.65;
+  color: #c9d1d9;
+}
+
+.pseudocode-line {
+  display: flex;
+  align-items: baseline;
+  gap: 0;
+  padding: 1px 14px 1px 0;
+  border-left: 3px solid transparent;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  white-space: pre;
+}
+
+.pseudocode-line--active {
+  background: rgba(88, 166, 255, 0.12);
+  border-left-color: #58a6ff;
+}
+
+.pseudocode-lineno {
+  display: inline-block;
+  width: 32px;
+  text-align: right;
+  padding-right: 16px;
+  color: #484f58;
+  font-size: 0.72rem;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.pseudocode-line--active .pseudocode-lineno {
+  color: #58a6ff;
+}
+
+.pseudocode-text {
+  flex: 1;
+}
+
+.pseudocode-empty-msg {
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-align: center;
+  margin: 0;
+}
+
 .array-container {
   display: flex;
   flex-wrap: wrap;
@@ -292,6 +413,7 @@ button + .action {
   border-radius: 16px;
   background: linear-gradient(135deg, rgba(248, 250, 255, 0.95), rgba(255, 255, 255, 0.95));
   overflow-x: auto;
+  width: 61.5vw;
 }
 
 .partition-tree-title {

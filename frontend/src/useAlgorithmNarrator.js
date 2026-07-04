@@ -21,6 +21,7 @@ const ALGO_INTROS = {
 
 export default function useAlgorithmNarrator() {
   const [narrationText, setNarrationText] = useState("Select your settings and click Start Algorithm to begin.");
+  const [currentAction, setCurrentAction] = useState('');
   const [introText, setIntroText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -77,6 +78,7 @@ export default function useAlgorithmNarrator() {
     const algoLower = (algoName ?? algorithmRef.current)?.toLowerCase();
     const treeAlgos = ['merge sort', '3-way merge sort', 'quick sort'];
     setPartitionTree(treeAlgos.includes(algoLower) && step?.partition_tree ? step.partition_tree : null);
+    setCurrentAction(step?.action || '');
     setNarrationText(`${step?.action || 'STEP'}. ${step?.logic || 'Next step.'}`);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -264,6 +266,7 @@ export default function useAlgorithmNarrator() {
 
   return {
     narrationText,
+    currentAction,
     introText,
     isLoading,
     currentStep,

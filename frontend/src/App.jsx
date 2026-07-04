@@ -6,6 +6,7 @@ import AIPage from './AIPage';
 export default function App() {
   const {
     narrationText,
+    currentAction,
     introText,
     isLoading,
     currentStep,
@@ -57,6 +58,7 @@ export default function App() {
     <div className="app-shell">
       <VisualizerPage
         narrationText={narrationText}
+        currentAction={currentAction}
         introText={introText}
         isLoading={isLoading}
         currentStep={currentStep}
