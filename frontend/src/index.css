@@ -1213,14 +1213,15 @@ button + .action {
   padding: 4px 8px;
   border-radius: 10px;
   border: 1px solid rgba(79, 70, 229, 0.12);
-  background: var(--surface);
+  background: white;
+  color: #000b1c;
   font-weight: 800;
   font-size: 0.88rem;
   transition: background 0.2s, border-color 0.2s;
 }
 
 .bench-card--compare {
-  background: #fef3c7;
+  background: white;
   border-color: rgba(245, 158, 11, 0.5);
 }
 
@@ -1271,7 +1272,7 @@ button + .action {
   padding: 8px 4px;
   border-radius: 10px;
   border: 1.5px solid;
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .bench-stat-value {
@@ -1283,7 +1284,7 @@ button + .action {
 .bench-stat-label {
   font-size: 0.68rem;
   font-weight: 600;
-  color: var(--muted);
+  color: #e2e8f0;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   margin-top: 2px;

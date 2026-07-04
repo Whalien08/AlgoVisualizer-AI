@@ -8,8 +8,8 @@ const ALGORITHMS = [
   'Bubble Sort', 'Selection Sort', 'Insertion Sort',
   'Merge Sort', 'Quick Sort', 'Heap Sort', '3-way Merge Sort', 'Cycle Sort',
 ];
-const COLOR_A = '#4f46e5'; // indigo  — Algorithm A
-const COLOR_B = '#4f46e5'; // emerald — Algorithm B
+const COLOR_A = '#0ea5e9'; // Sky Blue
+const COLOR_B = '#f43f5e'; // Rose Pink
 const PLAY_INTERVAL_MS = 500;
 
 // ── Mini array visualizer (stateless, purely from props) ──────────────────
