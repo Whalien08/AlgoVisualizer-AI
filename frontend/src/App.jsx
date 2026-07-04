@@ -33,10 +33,22 @@ export default function App() {
 
   const [activePage, setActivePage] = useState('visualizer');
 
+  // Snapshot of visualizer state passed into the AI page as live context
+  const vizContext = {
+    algorithm,
+    currentStep,
+    stepCount,
+    dataArray,
+    compareIndices,
+    swapIndices,
+    pivotIndices,
+    narrationText,
+  };
+
   if (activePage === 'ai') {
     return (
       <div className="app-shell">
-        <AIPage onBack={() => setActivePage('visualizer')} />
+        <AIPage onBack={() => setActivePage('visualizer')} vizContext={vizContext} />
       </div>
     );
   }

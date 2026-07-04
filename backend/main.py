@@ -35,6 +35,15 @@ class AlgorithmState(BaseModel):
 
 class ChatRequest(BaseModel):
     message: str
+    # Optional visualizer context — sent silently by the frontend
+    algorithm: str | None = None
+    current_step: int | None = None
+    step_count: int | None = None
+    data_array: List[int] | None = None
+    compare_indices: List[int] | None = None
+    swap_indices: List[int] | None = None
+    pivot_indices: List[int] | None = None
+    current_narration: str | None = None
 
 
 def get_iam_token(api_key: str) -> str:
@@ -605,6 +614,48 @@ async def generate_narration(state: AlgorithmState):
         return build_deterministic_plan(state.algorithm_name, state.data_structure)
 
 
+def build_context_prompt(request: ChatRequest) -> str:
+    """Build a user-facing message that includes live visualizer context when available."""
+    has_context = request.algorithm and request.current_step is not None
+
+    if not has_context:
+        return (
+            f"Answer this question in detail and include a simple visual representation where helpful.\n\n"
+            f"Question: {request.message}"
+        )
+
+    # Describe the highlighted indices in plain English
+    highlights = []
+    if request.compare_indices:
+        highlights.append(f"comparing indices {request.compare_indices}")
+    if request.swap_indices:
+        highlights.append(f"swapping indices {request.swap_indices}")
+    if request.pivot_indices:
+        highlights.append(f"pivot at index {request.pivot_indices}")
+    highlight_str = ("; ".join(highlights)) if highlights else "no highlighted elements"
+
+    context_block = (
+        f"[VISUALIZER CONTEXT]\n"
+        f"Algorithm: {request.algorithm}\n"
+        f"Step: {request.current_step + 1} of {request.step_count or '?'}\n"
+        f"Current array state: {request.data_array}\n"
+        f"Active highlights: {highlight_str}\n"
+        f"Step narration: {request.current_narration or 'none'}\n"
+        f"[END CONTEXT]\n\n"
+    )
+
+    return (
+        f"You are an AI tutor helping a student learn algorithms interactively. "
+        f"The student is watching a live step-by-step visualisation. "
+        f"Use the context below to give a precise, specific answer that directly references "
+        f"what is happening on screen right now.\n\n"
+        f"{context_block}"
+        f"Student question: {request.message}\n\n"
+        f"Answer clearly and concisely. Reference the actual array values and indices shown above. "
+        f"Include a brief visual or example where helpful."
+    )
+
+
 @app.post("/api/v1/chat")
 async def chat_with_ai(request: ChatRequest):
     api_key = os.getenv("WATSONX_APIKEY")
@@ -618,7 +669,7 @@ async def chat_with_ai(request: ChatRequest):
         ENDPOINT = BASE_URL + "/v1/orchestrate/" + AGENT_ID + "/chat/completions"
         headers = {"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"}
         payload = {
-            "messages": [{"role": "user", "content": f"Answer this question in detail and include a simple visual representation where helpful. Question: {request.message}"}],
+            "messages": [{"role": "user", "content": build_context_prompt(request)}],
             "stream": False,
         }
         response = REQUEST_SESSION.post(ENDPOINT, json=payload, headers=headers, timeout=(10, 30))
