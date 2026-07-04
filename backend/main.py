@@ -547,6 +547,43 @@ def build_deterministic_plan(algorithm_name: str, data_structure: List[int]) -> 
     return {"intro": intro, "steps": steps}
 
 
+class BenchmarkRequest(BaseModel):
+    algorithm_a: str
+    algorithm_b: str
+    data_structure: List[int]
+
+
+def _count_steps(steps: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Attach running comparison/swap counters to each step."""
+    comparisons = 0
+    swaps = 0
+    enriched = []
+    for step in steps:
+        action = step.get("action", "")
+        if action in ("COMPARE", "COMPARE_AND_SWAP", "PIVOT", "SPLIT", "MERGE"):
+            comparisons += 1
+        if action in ("COMPARE_AND_SWAP",):
+            swaps += 1
+        enriched.append({**step, "comparisons": comparisons, "swaps": swaps})
+    return enriched
+
+
+@app.post("/api/v1/benchmark")
+async def benchmark(request: BenchmarkRequest):
+    plan_a = build_deterministic_plan(request.algorithm_a, request.data_structure)
+    plan_b = build_deterministic_plan(request.algorithm_b, request.data_structure)
+    return {
+        "a": {
+            "algorithm": request.algorithm_a,
+            "steps": _count_steps(plan_a["steps"]),
+        },
+        "b": {
+            "algorithm": request.algorithm_b,
+            "steps": _count_steps(plan_b["steps"]),
+        },
+    }
+
+
 @app.post("/api/v1/narrate")
 async def generate_narration(state: AlgorithmState):
     supported_algorithms = {"bubble sort", "selection sort", "insertion sort", "merge sort", "3-way merge sort", "heap sort", "cycle sort", "quick sort"}
