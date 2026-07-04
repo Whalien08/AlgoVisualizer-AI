@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import useAlgorithmNarrator from './useAlgorithmNarrator';
 import VisualizerPage from './VisualizerPage';
 import AIPage from './AIPage';
+import BenchmarkPage from './BenchmarkPage';
 
 export default function App() {
   const {
@@ -54,6 +55,14 @@ export default function App() {
     );
   }
 
+  if (activePage === 'benchmark') {
+    return (
+      <div className="app-shell">
+        <BenchmarkPage onBack={() => setActivePage('visualizer')} />
+      </div>
+    );
+  }
+
   return (
     <div className="app-shell">
       <VisualizerPage
@@ -83,6 +92,7 @@ export default function App() {
         pivotIndices={pivotIndices}
         partitionTree={partitionTree}
         onOpenAI={() => setActivePage('ai')}
+        onOpenBenchmark={() => setActivePage('benchmark')}
       />
     </div>
   );

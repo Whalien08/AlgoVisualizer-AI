@@ -126,6 +126,7 @@ export default function VisualizerPage({
   pivotIndices,
   partitionTree,
   onOpenAI,
+  onOpenBenchmark,
 }) {
   const renderPartitionTree = (root) => {
     const layout = layoutTree(root);
@@ -198,9 +199,14 @@ export default function VisualizerPage({
           <h1>Algorithmic Visualizer AI</h1>
           <p className="page-subtitle">Study each sorting step with highlights and a separate AI workspace.</p>
         </div>
-        <button className="chat-toggle" onClick={onOpenAI}>
-          🤖 Open AI Page
-        </button>
+        <div className="page-header-actions">
+          <button className="chat-toggle" onClick={onOpenBenchmark}>
+            📊 Benchmark
+          </button>
+          <button className="chat-toggle" onClick={onOpenAI}>
+            🤖 AI Page
+          </button>
+        </div>
       </div>
 
       <div className="control-stack">
