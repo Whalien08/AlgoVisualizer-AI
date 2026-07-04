@@ -6,9 +6,11 @@ import requests
 import os
 import json
 import time
+from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv()
+# Load .env from the backend/ directory regardless of where uvicorn is launched from
+load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env")
 
 app = FastAPI(title="AlgoVisualizer AI Engine")
 
