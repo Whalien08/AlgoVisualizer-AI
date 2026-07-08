@@ -99,7 +99,7 @@ export default function AIPage({ onBack, vizContext = {} }) {
 
   // Shared fetch helper — posts to /api/v1/chat and returns the reply string
   const callChat = async (message, extra = {}) => {
-    const response = await fetch('http://localhost:8000/api/v1/chat', {
+    const response = await fetch('/api/v1/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message, ...ctxPayload(), ...extra }),
