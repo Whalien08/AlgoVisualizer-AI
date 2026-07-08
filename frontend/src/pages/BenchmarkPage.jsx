@@ -90,7 +90,7 @@ export default function BenchmarkPage({ onBack }) {
     cursorRef.current = 0;
 
     try {
-      const res = await fetch('http://localhost:8000/api/v1/benchmark', {
+      const res = await fetch('/api/v1/benchmark', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -91,7 +91,7 @@ export default function useAlgorithmNarrator() {
   const fetchFullPlan = async (algorithmName, currentData, autoPlay = false) => {
     setIsLoading(true);
     try {
-      const response = await fetch("http://localhost:8000/api/v1/narrate", {
+      const response = await fetch("/api/v1/narrate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
