@@ -12,14 +12,18 @@
       }
     }
   ],
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/(.*)",
-      "destination": "backend/main.py"
+      "src": "/api/(.*)",
+      "dest": "/backend/main.py"
     },
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "src": "/(.*\\.(?:js|css|ico|png|svg|jpg|jpeg|gif|json|woff|woff2|ttf|eot))",
+      "dest": "/frontend/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/frontend/index.html"
     }
   ]
 }
