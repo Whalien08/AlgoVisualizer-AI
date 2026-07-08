@@ -1,13 +1,13 @@
 :root {
-  --bg: #eef2ff;
-  --surface: #ffffff;
-  --surface-muted: #f8f9ff;
-  --text: #1f2233;
-  --muted: #6f7386;
-  --accent: #4f46e5;
-  --accent-soft: rgba(79, 70, 229, 0.12);
-  --border: rgba(15, 23, 42, 0.08);
-  --shadow: 0 18px 50px rgba(34, 40, 80, 0.08);
+  --bg: #0f172a;
+  --surface: #111827;
+  --surface-muted: #111827;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --accent: #8b5cf6;
+  --accent-soft: rgba(139, 92, 246, 0.16);
+  --border: rgba(148, 163, 184, 0.18);
+  --shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
   --radius: 24px;
   --radius-sm: 14px;
 
@@ -15,7 +15,7 @@
   font-size: 16px;
   line-height: 1.6;
   color: var(--text);
-  background: radial-gradient(circle at top, #eef2ff 0%, #edf1ff 38%, #eef2ff 100%);
+  background: radial-gradient(circle at top, #111827 0%, #0f172a 38%, #111827 100%);
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -67,8 +67,6 @@ body {
   padding: 36px;
 }
 
-/* When the AI page is active the card needs extra room at the bottom
-   so the last bubble is never hidden behind the sticky input bar. */
 #root > div:has(.ai-page) {
   padding-bottom: 100px;
 }
@@ -423,7 +421,6 @@ button + .action {
   margin-bottom: 10px;
 }
 
-/* Absolutely-positioned container that the SVG and node divs live inside */
 .partition-svg-wrap {
   display: block;
   margin: 0 auto;
@@ -596,7 +593,6 @@ button + .action {
   background: var(--border);
   outline: none;
   cursor: pointer;
-  /* Filled portion via a gradient driven by --pct set inline */
   background: linear-gradient(
     to right,
     var(--accent) 0%,
