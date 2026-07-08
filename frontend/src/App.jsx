@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import useAlgorithmNarrator from './useAlgorithmNarrator';
-import VisualizerPage from './VisualizerPage';
-import AIPage from './AIPage';
-import BenchmarkPage from './BenchmarkPage';
+import React, { useState } from "react";
+import useAlgorithmNarrator from "./hooks/useAlgorithmNarrator";
+import VisualizerPage from "./pages/VisualizerPage";
+import AIPage from "./pages/AIPage";
+import BenchmarkPage from "./pages/BenchmarkPage";
 
 export default function App() {
   const {
