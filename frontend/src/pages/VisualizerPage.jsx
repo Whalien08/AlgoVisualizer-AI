@@ -1,5 +1,5 @@
 import React from 'react';
-import PseudocodePane from './PseudocodePane';
+import PseudocodePane from '../components/PseudocodePane';
 
 // ── Partition-tree SVG layout ─────────────────────────────────────────────
 // Constants that control spacing (px).
