@@ -235,9 +235,8 @@ export default function VisualizerPage({
         </div>
       </div>
 
-      {/* ── Dual-pane: visualizer left, pseudocode right ──────────── */}
-      <div className="viz-dual-pane">
-        <div className="viz-pane">
+      <div className={`viz-layout-container ${visiblePartitionTree ? 'has-tree' : 'no-tree'}`}>
+        <div className="viz-visuals-section">
           <div className="array-container">
             {dataArray.map((num, i) => {
               const isCompared = compareIndices.includes(i);
@@ -279,14 +278,13 @@ export default function VisualizerPage({
           )}
         </div>
 
-    
-      <div>
-        <PseudocodePane
-          algorithm={algorithm}
-          action={currentAction}
-          hasStarted={hasShownIntro}
-        />
-      </div>
+        <div className="viz-code-section">
+            <PseudocodePane
+              algorithm={algorithm}
+              action={currentAction}
+              hasStarted={hasShownIntro}
+            />
+        </div>
     </div>
 
       {/* ── Transport controls ─────────────────────────────────────── */}
