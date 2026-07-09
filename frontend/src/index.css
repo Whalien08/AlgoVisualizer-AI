@@ -54,6 +54,7 @@ body {
 #root {
   width: min(1120px, 100%);
   margin: 0 auto;
+  max-width: 1400px;
   padding: 32px 24px 48px;
 }
 
@@ -407,7 +408,7 @@ button + .action {
   border-radius: 16px;
   background: linear-gradient(135deg, rgba(248, 250, 255, 0.95), rgba(255, 255, 255, 0.95));
   overflow-x: auto;
-  width: 61.5vw;
+  width: 100%;
 }
 
 .partition-tree-title {
