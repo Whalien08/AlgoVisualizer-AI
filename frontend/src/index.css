@@ -1320,3 +1320,163 @@ button + .action {
   color: var(--muted);
   font-size: 0.95rem;
 }
+
+.home-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 75vh;
+  text-align: center;
+  padding: 20px 10px;
+  position: relative;
+}
+
+/* A soft, atmospheric glow behind the hero section */
+.home-page::before {
+  content: '';
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 70vw;
+  height: 60vh;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.12) 0%, rgba(15, 23, 42, 0) 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.home-hero {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 64px;
+}
+
+.home-hero h1 {
+  font-size: clamp(2.5rem, 6vw, 4.8rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  margin-bottom: 18px;
+  color: #f8fafc;
+}
+
+/* Glowing gradient text */
+.home-hero .highlight {
+  background: linear-gradient(135deg, #a855f7, #6366f1);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 30px rgba(168, 85, 247, 0.3); /* Subtle text glow */
+}
+
+.home-subtitle {
+  font-size: 1.15rem;
+  color: var(--muted);
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.7;
+  font-weight: 400;
+}
+
+.home-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 28px;
+  width: 100%;
+  max-width: 1050px;
+}
+
+/* Glassmorphism Cards */
+.nav-card {
+  background: rgba(17, 24, 39, 0.6); /* Slightly transparent */
+  backdrop-filter: blur(12px); /* Frosted glass effect */
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  border-radius: 24px;
+  padding: 36px 32px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Hover: Lift, glow, and brighten border */
+.nav-card:hover {
+  transform: translateY(-8px);
+  background: rgba(17, 24, 39, 0.9);
+  border-color: rgba(139, 92, 246, 0.5);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(139, 92, 246, 0.15);
+}
+
+.nav-card-icon {
+  font-size: 2.2rem;
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(99, 102, 241, 0.15));
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20px;
+  transition: transform 0.3s ease;
+}
+
+/* Little icon bounce on hover */
+.nav-card:hover .nav-card-icon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.nav-card h2 {
+  font-size: 1.35rem;
+  color: #f8fafc;
+  margin: 0 0 12px 0;
+  font-weight: 700;
+}
+
+.nav-card p {
+  font-size: 0.95rem;
+  color: #94a3b8;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.global-nav {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 32px;
+  padding: 12px;
+  background: rgba(17, 24, 39, 0.4);
+  backdrop-filter: blur(8px);
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+  flex-wrap: wrap;
+}
+
+/* Override mobile 100% width and make them sleek pills */
+.global-nav .btn-secondary {
+  width: auto !important; 
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--muted);
+  transition: all 0.2s ease;
+}
+
+.global-nav .btn-secondary:hover {
+  background: rgba(139, 92, 246, 0.15);
+  color: #f8fafc;
+  border-color: rgba(139, 92, 246, 0.4);
+}

@@ -3,6 +3,7 @@ import useAlgorithmNarrator from "./hooks/useAlgorithmNarrator";
 import VisualizerPage from "./pages/VisualizerPage";
 import AIPage from "./pages/AIPage";
 import BenchmarkPage from "./pages/BenchmarkPage";
+import HomePage from './pages/HomePage';
 
 export default function App() {
   const {
@@ -33,7 +34,7 @@ export default function App() {
     partitionTree,
   } = useAlgorithmNarrator();
 
-  const [activePage, setActivePage] = useState('visualizer');
+  const [activePage, setActivePage] = useState('home');
 
   // Snapshot of visualizer state passed into the AI page as live context
   const vizContext = {
@@ -47,24 +48,29 @@ export default function App() {
     narrationText,
   };
 
-  if (activePage === 'ai') {
-    return (
-      <div className="app-shell">
-        <AIPage onBack={() => setActivePage('visualizer')} vizContext={vizContext} />
-      </div>
-    );
-  }
-
-  if (activePage === 'benchmark') {
-    return (
-      <div className="app-shell">
-        <BenchmarkPage onBack={() => setActivePage('visualizer')} />
-      </div>
-    );
-  }
-
   return (
     <div className="app-shell">
+      {activePage !== 'home' && (
+        <nav className="global-nav" style={{ marginBottom: '20px', justifyContent: 'center' }}>
+          <button className="btn-secondary" onClick={() => setActivePage('home')}>🏠 Home</button>
+          <button className="btn-secondary" onClick={() => setActivePage('visualizer')}>📊 Visualizer</button>
+          <button className="btn-secondary" onClick={() => setActivePage('benchmark')}>⏱️ Benchmark</button>
+          <button className="btn-secondary" onClick={() => setActivePage('ai')}>🧠 AI Tutor</button>
+        </nav>
+      )}
+      {activePage === 'home' && (
+        <HomePage onNavigate={(page) => setActivePage(page)} />
+      )}
+
+      {activePage === 'ai' && (
+        <AIPage onBack={() => setActivePage('home')} vizContext={vizContext} />
+      )}
+
+      {activePage === 'benchmark' && (
+        <BenchmarkPage onBack={() => setActivePage('home')} />
+      )}
+
+      {activePage === 'visualizer' && (
       <VisualizerPage
         narrationText={narrationText}
         currentAction={currentAction}
@@ -93,7 +99,9 @@ export default function App() {
         partitionTree={partitionTree}
         onOpenAI={() => setActivePage('ai')}
         onOpenBenchmark={() => setActivePage('benchmark')}
+        onBack={() => setActivePage('home')}
       />
+      )}
     </div>
   );
 }

@@ -127,6 +127,7 @@ export default function VisualizerPage({
   partitionTree,
   onOpenAI,
   onOpenBenchmark,
+  onBack,
 }) {
   const renderPartitionTree = (root) => {
     const layout = layoutTree(root);
@@ -195,18 +196,11 @@ export default function VisualizerPage({
   return (
     <>
       <div className="page-header">
-        <div>
-          <h1>Algorithmic Visualizer AI</h1>
-          <p className="page-subtitle">Study each sorting step with highlights and a separate AI workspace.</p>
-        </div>
-        <div className="page-header-actions">
-          <button className="chat-toggle" onClick={onOpenBenchmark}>
-            📊 Benchmark
-          </button>
-          <button className="chat-toggle" onClick={onOpenAI}>
-            🤖 AI Page
-          </button>
-        </div>
+          <div>
+            <h1>Algorithmic Visualizer AI</h1>
+            <p className="page-subtitle">Study each sorting step with highlights and a separate AI workspace.</p>
+          </div>
+          <button className="chat-toggle" onClick={onBack}>← Back</button>
       </div>
 
       <div className="control-stack">
@@ -285,7 +279,7 @@ export default function VisualizerPage({
           )}
         </div>
 
-    </div>
+    
       <div>
         <PseudocodePane
           algorithm={algorithm}
@@ -293,6 +287,7 @@ export default function VisualizerPage({
           hasStarted={hasShownIntro}
         />
       </div>
+    </div>
 
       {/* ── Transport controls ─────────────────────────────────────── */}
       <div className="transport">
