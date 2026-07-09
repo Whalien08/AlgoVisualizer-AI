@@ -94,10 +94,10 @@ npm install
 
 # Start the Vite development server
 npm run dev
-
+```
 2. Backend Setup
 Bash
-
+```
 # Navigate to the backend directory
 cd ../backend
 
