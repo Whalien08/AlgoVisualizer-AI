@@ -190,8 +190,11 @@ button + .action {
   flex-direction: column;
   overflow: hidden;
   height: 380px;
+  width: 380px;
   position: sticky;
-  top: 24px; /* sticks while the visualizer side scrolls */
+  margin-left: 20px; 
+  margin-top: 0px; 
+  top: 10px;
 }
 
 .pseudocode-pane--empty {
@@ -295,6 +298,7 @@ button + .action {
   flex-direction: column;
   align-items: center;
   min-width: 70px;
+  margin-top: 20%;
 }
 
 .array-card {
@@ -407,6 +411,7 @@ button + .action {
   background: linear-gradient(135deg, rgba(248, 250, 255, 0.95), rgba(255, 255, 255, 0.95));
   overflow-x: auto;
   width: 100%;
+  margin-top: 25%;
 }
 
 .partition-tree-title {
