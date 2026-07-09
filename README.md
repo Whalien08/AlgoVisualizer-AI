@@ -82,7 +82,7 @@ Currently, the visualizer supports the mathematical step-generation and visualiz
 To run this project locally, you will need Node.js and Python installed.
 1. Frontend Setup
 Bash
-
+```
 # Clone the repository
 git clone [https://github.com/Whalien08/algo-visualizer-ai.git](https://github.com/Whalien08/algo-visualizer-ai.git)
 
@@ -113,7 +113,7 @@ pip install -r requirements.txt
 
 # Run the FastAPI server
 uvicorn main:app --reload
-
+```
 🔮 Future Scope
 
     Graph Algorithms: Expanding the visualizer to include pathfinding (Dijkstra, A*) and graph traversal (BFS, DFS).
