@@ -223,7 +223,7 @@ export default function AIPage({ onBack, vizContext = {} }) {
           </p>
         </div>
         <button className="chat-toggle" onClick={onBack}>
-          ← Back to Visualizer
+          ← Back
         </button>
       </div>
 

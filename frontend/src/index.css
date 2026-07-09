@@ -60,10 +60,6 @@ body {
 #root > div {
   max-width: 960px;
   margin: 0 auto;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
   padding: 36px;
 }
 
