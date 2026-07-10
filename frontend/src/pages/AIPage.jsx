@@ -12,7 +12,7 @@ function buildQuizPrompt(ctx) {
   const highlightStr = highlights.length ? highlights.join('; ') : 'no highlighted elements';
 
   return (
-    `You are a quiz tutor for an algorithm visualizer. ` +
+    `Your name is Elix. You are a quiz tutor for an algorithm visualizer. ` +
     `The student is watching ${ctx.algorithm} step by step.\n\n` +
     `[CURRENT STATE]\n` +
     `Step: ${ctx.current_step + 1} of ${ctx.step_count ?? '?'}\n` +
@@ -35,7 +35,7 @@ function buildGradePrompt(question, studentAnswer, ctx) {
   const highlightStr = highlights.length ? highlights.join('; ') : 'no highlighted elements';
 
   return (
-    `You are a quiz tutor grading a student's answer about ${ctx.algorithm}.\n\n` +
+    `Your name is Elix. You are a quiz tutor grading a student's answer about ${ctx.algorithm}.\n\n` +
     `[QUIZ CONTEXT — step ${ctx.current_step + 1} of ${ctx.step_count ?? '?'}]\n` +
     `Array at quiz time: ${JSON.stringify(ctx.data_array)}\n` +
     `Active highlights: ${highlightStr}\n` +
