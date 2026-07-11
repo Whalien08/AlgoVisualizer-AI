@@ -204,7 +204,7 @@ button + .action {
   height: 380px;
   width: 100%;
   position: sticky;
-  margin-left: 20px; 
+  margin-left: 0; 
   margin-top: 0;
 }
 

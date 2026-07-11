@@ -269,9 +269,6 @@ export default function VisualizerPage({
               );
             })}
           </div>
-
-          
-
           {visiblePartitionTree && (
             <div className="partition-tree">
               <div className="partition-tree-title">Partition view</div>
