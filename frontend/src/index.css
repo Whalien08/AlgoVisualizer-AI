@@ -675,7 +675,7 @@ button + .action {
 }
 
 .ai-page {
-  width: 100%;
+  width: 90vw;
 }
 
 /* ── Context badge ─────────────────────────────────────────────── */
@@ -1105,7 +1105,7 @@ button + .action {
    BENCHMARK PAGE
    ══════════════════════════════════════════════════════════════════ */
 .bench-page {
-  width: 100%;
+  width: 90vw;
 }
 
 /* ── Setup controls ─────────────────────────────────────────────── */
@@ -1337,6 +1337,7 @@ button + .action {
   align-items: center;
   justify-content: center;
   min-height: 75vh;
+  width: 90vw;
   text-align: center;
   padding: 20px 10px;
   position: relative;
@@ -1466,13 +1467,9 @@ button + .action {
   background: rgba(17, 24, 39, 0.4);
   backdrop-filter: blur(8px);
   border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.1);
-  
-  /* These specific lines force the horizontal row: */
   width: max-content; 
   max-width: 100%;
   margin-left: auto;
-  margin-right: auto;
   flex-wrap: nowrap; 
   overflow-x: auto;
 }
@@ -1486,8 +1483,6 @@ button + .action {
   border: 1px solid transparent;
   color: var(--muted);
   transition: all 0.2s ease;
-  
-  /* These specific lines stop the buttons from squishing: */
   white-space: nowrap; 
   flex-shrink: 0; 
   margin: 0;
