@@ -270,13 +270,7 @@ export default function VisualizerPage({
             })}
           </div>
 
-          <div className="viz-code-section">
-            <PseudocodePane
-              algorithm={algorithm}
-              action={currentAction}
-              hasStarted={hasShownIntro}
-            />
-        </div>
+          
 
           {visiblePartitionTree && (
             <div className="partition-tree">
@@ -284,6 +278,13 @@ export default function VisualizerPage({
               {renderPartitionTree(visiblePartitionTree)}
             </div>
           )}
+        </div>
+        <div className="viz-code-section">
+            <PseudocodePane
+              algorithm={algorithm}
+              action={currentAction}
+              hasStarted={hasShownIntro}
+            />
         </div>
     </div>
 
