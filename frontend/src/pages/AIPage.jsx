@@ -36,7 +36,8 @@ function buildGradePrompt(question, studentAnswer, ctx) {
   const highlightStr = highlights.length ? highlights.join('; ') : 'no highlighted elements';
 
   return (
-    `Your name is Elix. You are a quiz tutor grading a student's answer about ${ctx.algorithm}.\n\n` +
+    `Your name is Elix. Greet user and introduce yourself as Elix`+ 
+    `You are a quiz tutor grading a student's answer about ${ctx.algorithm}.\n\n` +
     `[QUIZ CONTEXT — step ${ctx.current_step + 1} of ${ctx.step_count ?? '?'}]\n` +
     `Array at quiz time: ${JSON.stringify(ctx.data_array)}\n` +
     `Active highlights: ${highlightStr}\n` +
@@ -45,7 +46,7 @@ function buildGradePrompt(question, studentAnswer, ctx) {
     `Quiz question asked: "${question}"\n` +
     `Student's answer: "${studentAnswer}"\n\n` +
     `Grade the answer clearly:\n` +
-    `1. Start with ✅ Correct, ⚠️ Partially correct, or ❌ Incorrect.\n` +
+    `1. Start with Correct, Partially correct, or Incorrect.\n` +
     `2. In 2–4 sentences explain why, referencing the actual array values and indices.\n` +
     `3. Briefly show what the algorithm actually does next (one sentence or a short visual).`
   );
