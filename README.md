@@ -121,8 +121,11 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 # Install requirements
 pip install -r requirements.txt
 
-# Set up IBM Watson credentials
-# Create a .env file and add your IBM_API_KEY and IBM_PROJECT_ID
+# Configure Environment Variables
+# Create a file named `.env` in the /backend directory and provide your IBM Watsonx credentials:
+# WATSONX_APIKEY=your_ibm_api_key_here
+# WATSON_BASE_URL=your_ibm_base_url_here
+# WATSON_AGENT_ID=your_ibm_agent_id_here
 
 # Run the FastAPI server
 uvicorn main:app --reload
