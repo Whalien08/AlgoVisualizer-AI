@@ -29,6 +29,11 @@ Powered by **IBM WatsonX**, Elix is a context-aware AI assistant integrated dire
 * **Interactive "Quiz Me":** The AI generates on-the-fly, context-specific questions testing your understanding of the *current* step, then grades your answer.
 
 ---
+### Video
+
+https://github.com/user-attachments/assets/3db45d79-fb6e-4aef-bd0c-f86eaaec3997
+
+---
 
 ## 🏗️ System Architecture
 
