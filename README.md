@@ -44,35 +44,40 @@ graph TD
     subgraph Frontend [Client - React/Vite]
         UI[Glassmorphism UI]
         State[React State / Context]
-        Router[React Router DOM]
         Charts[Recharts]
     end
 
     subgraph Backend [Server - FastAPI]
         API[REST API Endpoints]
         Engine[Algorithm Step Generator]
-        IBM[WatsonX Prompt Builder]
     end
     
-    subgraph Cloud [External Services]
-        Watson[IBM WatsonX / Orchestrate]
+    subgraph AI_Engine [IBM Cloud]
+        Orchestrate[Watsonx Orchestrate]
+        Granite[IBM Granite-3-8B-Instruct]
+        RAG[Algorithm Dataset RAG]
     end
 
     UI <-->|User Actions| State
     State <-->|Fetch Step Plans| API
     API <-->|Generates Logic| Engine
-    State <-->|Context Payload| API
-    API <-->|IAM Auth & Inference| Watson
+    API <-->|IAM Auth & Inference| Orchestrate
+    Orchestrate <-->|Reasoning| Granite
+    Orchestrate <-->|Knowledge| RAG
 ```
 🛠️ Tech Stack
 
-    Frontend: React.js, Vite, React Router, Recharts, Custom CSS (Glassmorphism).
-
+    Frontend: React.js, Vite, React Router, Recharts.
+    
     Backend: FastAPI, Python.
-
-    AI Engine: IBM WatsonX (Watson Orchestrate API).
-
-    Deployment: Vercel (Frontend), [Insert Backend Host] (Backend).
+    
+    AI & Orchestration: IBM Watsonx Orchestrate, IBM Granite-3-8B-Instruct (via Watsonx.ai).
+    
+    AI Development Assistant: IBM Bob (used for architectural optimization and debugging).
+    
+    Grounding: Retrieval-Augmented Generation (RAG) with proprietary algorithm dataset.
+    
+    Deployment: Vercel.
 
 🚀 Supported Algorithms
 
