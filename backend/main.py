@@ -650,7 +650,7 @@ async def generate_narration(state: AlgorithmState):
         return build_deterministic_plan(state.algorithm_name, state.data_structure)
 
 
-def build_context_prompt(request: ChatRequest) -> str:
+def build_context_block(request: ChatRequest) -> str:
     """Build a user-facing message that includes live visualizer context when available."""
     has_context = request.algorithm and request.current_step is not None
 
@@ -711,7 +711,7 @@ async def chat_with_ai(request: ChatRequest):
         }
         
         payload = {
-            "input": f"CONTEXT: {build_context_prompt(request)}\nUSER MESSAGE: {request.message}",
+            "input": f"CONTEXT: {build_context_block(request)}\nUSER MESSAGE: {request.message}",
             "stream": False
         }
         print(f"DEBUGGING PAYLOAD: {payload}")
