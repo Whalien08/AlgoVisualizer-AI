@@ -734,7 +734,7 @@ async def chat_with_ai(request: ChatRequest):
             "messages": [
                 {
                     "role": "user",
-                    "content": request.message
+                    "content": build_minimal_context(request)
                 }
             ],
             "stream": False

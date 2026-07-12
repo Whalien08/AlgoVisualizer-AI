@@ -44,7 +44,6 @@ function buildGradePrompt(question, studentAnswer, ctx, chatContext) {
     `1. Start strictly with Correct, Partially correct, or Incorrect.\n` +
     `2. In 2–4 sentences, explain why they are right or wrong.\n` +
     `3. If it was a visualizer question, reference the actual array values. If it was a conceptual question, explain the underlying computer science principle clearly.`
-    `4. 3. CRITICAL: Immediately after your explanation, generate a NEW, different quiz question based on the visualizer context to keep testing the student. End your response with this new question mark.`
   );
 }
 
@@ -205,6 +204,8 @@ export default function AIPage({ onBack, vizContext = {} }) {
     ]);
     setChatInput('');
     setIsChatLoading(true);
+    // Clear quiz state now so a slow response doesn't keep the UI locked
+    setQuizState(null);
 
     try {
       const gradePrompt = buildGradePrompt(question, answer, snapshot, recentChat);
@@ -213,7 +214,6 @@ export default function AIPage({ onBack, vizContext = {} }) {
         ...prev,
         { role: 'assistant', content: reply, variant: 'quiz-result' },
       ]);
-      setQuizState({ question: reply, snapshot: ctxPayload(), recentChat });
     } catch {
       setChatMessages((prev) => [
         ...prev,
