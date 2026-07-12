@@ -65,6 +65,7 @@ export default function AIPage({ onBack, vizContext = {} }) {
       {
         role: 'assistant',
         content:
+          'My name is Elix.'+
           'Ask me anything about sorting, data structures, or algorithms and I will explain it clearly.\n\n' +
           'If the visualizer is running, I can see exactly which step you are on — try asking **"Why did it just swap those two?"** ' +
           'or press **🧠 Quiz Me** and I will test your understanding of the current step.',

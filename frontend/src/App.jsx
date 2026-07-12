@@ -55,10 +55,10 @@ export default function App() {
     <div className="app-shell">
       {location.pathname !== '/' && (
         <nav className="global-nav">
-          <button className="btn-secondary" onClick={() => navigate('/')}>🏠 Home</button>
-          <button className="btn-secondary" onClick={() => navigate('/visualizer')}>📊 Visualizer</button>
-          <button className="btn-secondary" onClick={() => navigate('/benchmark')}>⏱️ Benchmark</button>
-          <button className="btn-secondary" onClick={() => navigate('/ai')}>🧠 AI Tutor</button>
+          <button className="btn-secondary" onClick={() => navigate('/')}>🏠︎ Home</button>
+          <button className="btn-secondary" onClick={() => navigate('/visualizer')}>🗠 Visualizer</button>
+          <button className="btn-secondary" onClick={() => navigate('/benchmark')}>⏱ Benchmark</button>
+          <button className="btn-secondary" onClick={() => navigate('/ai')}>🗪 AI Tutor</button>
         </nav>
       )}
       <Routes>
