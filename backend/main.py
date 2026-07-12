@@ -719,9 +719,8 @@ async def chat_with_ai(request: ChatRequest):
     base_url = os.getenv("WATSON_BASE_URL")
     agent_id = os.getenv("WATSON_AGENT_ID")
     
-    # DIAGNOSTIC 1: Check environment variables
     if not api_key or not base_url or not agent_id:
-        return {"reply": "❌ DIAGNOSTIC ERROR: Missing environment variables in deployment! Check your host settings."}
+        return {"reply": "❌ DIAGNOSTIC ERROR: Missing environment variables."}
 
     try:
         access_token = get_iam_token(api_key)
@@ -735,7 +734,7 @@ async def chat_with_ai(request: ChatRequest):
             "messages": [
                 {
                     "role": "user",
-                    "content": build_minimal_context(request)
+                    "content": request.message
                 }
             ],
             "stream": False
@@ -745,19 +744,16 @@ async def chat_with_ai(request: ChatRequest):
         
         if response.ok:
             data = response.json()
-            
-            # Safely grab the text from the choices array
             choices = data.get("choices", [])
             if choices:
                 reply = choices[0].get("message", {}).get("content", "No content found.")
             else:
-                reply = data.get("reply") or data.get("output", {}).get("text") or f"⚠️ UNKNOWN: {json.dumps(data)}"
+                reply = data.get("reply") or data.get("output", {}).get("text") or f"⚠️ UNKNOWN PAYLOAD"
                 
             return {"reply": reply}
         else:
-            # DIAGNOSTIC 2: Print exact IBM rejection to the chat UI
-            return {"reply": f"❌ IBM REJECTED REQUEST | Status: {response.status_code} | Reason: {response.text}"}
+            error_details = response.text
+            return {"reply": f"❌ IBM REJECTED REQUEST | Status: {response.status_code} | Reason: {error_details}"}
             
     except Exception as e:
-        # DIAGNOSTIC 3: Print Python crash to the chat UI
         return {"reply": f"❌ PYTHON BACKEND CRASHED: {str(e)}"}
