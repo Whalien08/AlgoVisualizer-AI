@@ -733,8 +733,12 @@ async def chat_with_ai(request: ChatRequest):
         payload = {
             "messages": [
                 {
+                    "role": "system",
+                    "content": "You are Elix, a CS tutor. Follow the instructions provided by the user in the prompt exactly, especially regarding grading answers and generating follow-up quiz questions."
+                },
+                {
                     "role": "user",
-                    "content": build_minimal_context(request)
+                    "content": request.message
                 }
             ],
             "stream": False
@@ -748,7 +752,7 @@ async def chat_with_ai(request: ChatRequest):
             if choices:
                 reply = choices[0].get("message", {}).get("content", "No content found.")
             else:
-                reply = data.get("reply") or data.get("output", {}).get("text") or f"⚠️ UNKNOWN PAYLOAD"
+                reply = data.get("reply") or data.get("output", {}).get("text") or f"⚠️ UNKNOWN: {json.dumps(data)}"
                 
             return {"reply": reply}
         else:
