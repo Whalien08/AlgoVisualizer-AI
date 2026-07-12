@@ -35,7 +35,7 @@ https://github.com/user-attachments/assets/3db45d79-fb6e-4aef-bd0c-f86eaaec3997
 
 ---
 
-## 🏗️ System Architecture
+### 🏗️ System Architecture
 
 The application is decoupled into a high-performance frontend and a robust Python backend, communicating via REST APIs.
 
@@ -68,7 +68,7 @@ graph TB
     Proxy --> Watson
     Watson --> Gateway
 ```
-🛠️ Tech Stack
+### 🛠️ Tech Stack
 
     Frontend: React.js, Vite, React Router, Recharts.
     
@@ -82,7 +82,7 @@ graph TB
     
     Deployment: Vercel.
 
-🚀 Supported Algorithms
+### 🚀 Supported Algorithms
 
 Currently, the visualizer supports the mathematical step-generation and visualization for:
 
@@ -90,44 +90,58 @@ Currently, the visualizer supports the mathematical step-generation and visualiz
 
     O(N log N): Merge Sort, Quick Sort, Heap Sort, 3-way Merge Sort
 
-💻 Local Installation
+### 💻 Local Installation
 
 To run this project locally, you will need Node.js and Python installed.
-1. Frontend Setup
+## 1. Frontend Setup
+
+1. Clone the repository
 Bash
 ```
-# Clone the repository
 git clone [https://github.com/Whalien08/algo-visualizer-ai.git](https://github.com/Whalien08/algo-visualizer-ai.git)
-
-# Navigate to the frontend directory
+```
+2. Navigate to the frontend directory
+Bash
+```
 cd algo-visualizer-ai/frontend
-
-# Install dependencies
+```
+4. Install dependencies
+Bash
+```
 npm install
-
-# Start the Vite development server
+```
+6. Start the Vite development server
+Bash
+```
 npm run dev
 ```
-2. Backend Setup
+## 2. Backend Setup
+
+1. Navigate to the backend directory
+2. Bash
+```
+cd ../backend
+```
+3. Create a virtual environment
 Bash
 ```
-# Navigate to the backend directory
-cd ../backend
-
-# Create a virtual environment
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install requirements
+```
+4. Install requirements
+Bash
+```
 pip install -r requirements.txt
+```
+5. Configure Environment Variables
+  Create a file named `.env` in the /backend directory and provide your IBM Watsonx credentials:
+  WATSONX_APIKEY=your_ibm_api_key_here
+  WATSON_BASE_URL=your_ibm_base_url_here
+  WATSON_AGENT_ID=your_ibm_agent_id_here
 
-# Configure Environment Variables
-# Create a file named `.env` in the /backend directory and provide your IBM Watsonx credentials:
-# WATSONX_APIKEY=your_ibm_api_key_here
-# WATSON_BASE_URL=your_ibm_base_url_here
-# WATSON_AGENT_ID=your_ibm_agent_id_here
-
-# Run the FastAPI server
+6. Run the FastAPI server
+Bash
+```
 uvicorn main:app --reload
 ```
 🔮 Future Scope
