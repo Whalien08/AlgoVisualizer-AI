@@ -205,8 +205,6 @@ export default function AIPage({ onBack, vizContext = {} }) {
     ]);
     setChatInput('');
     setIsChatLoading(true);
-    // Clear quiz state now so a slow response doesn't keep the UI locked
-    setQuizState(null);
 
     try {
       const gradePrompt = buildGradePrompt(question, answer, snapshot, recentChat);
@@ -215,6 +213,7 @@ export default function AIPage({ onBack, vizContext = {} }) {
         ...prev,
         { role: 'assistant', content: reply, variant: 'quiz-result' },
       ]);
+      setQuizState({ question: reply, snapshot: ctxPayload(), recentChat });
     } catch {
       setChatMessages((prev) => [
         ...prev,
