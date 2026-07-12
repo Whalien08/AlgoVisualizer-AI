@@ -56,15 +56,21 @@ function buildGradePrompt(question, studentAnswer, ctx) {
 
 export default function AIPage({ onBack, vizContext = {} }) {
   const [chatInput, setChatInput]     = useState('');
-  const [chatMessages, setChatMessages] = useState([
-    {
-      role: 'assistant',
-      content:
-        'Ask me anything about sorting, data structures, or algorithms and I will explain it clearly.\n\n' +
-        'If the visualizer is running, I can see exactly which step you are on — try asking **"Why did it just swap those two?"** ' +
-        'or press **🧠 Quiz Me** and I will test your understanding of the current step.',
-    },
-  ]);
+  const [chatMessages, setChatMessages] = useState(() => {
+    const savedChat = localStorage.getItem('elixChatHistory');
+    if (savedChat) {
+      return JSON.parse(savedChat);
+    }
+    return [
+      {
+        role: 'assistant',
+        content:
+          'Ask me anything about sorting, data structures, or algorithms and I will explain it clearly.\n\n' +
+          'If the visualizer is running, I can see exactly which step you are on — try asking **"Why did it just swap those two?"** ' +
+          'or press **🧠 Quiz Me** and I will test your understanding of the current step.',
+      },
+    ];
+  });
   const [isChatLoading, setIsChatLoading] = useState(false);
   // null  → idle   |   { question, snapshot } → awaiting student answer
   const [quizState, setQuizState] = useState(null);
@@ -73,6 +79,25 @@ export default function AIPage({ onBack, vizContext = {} }) {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages]);
+
+  useEffect(() => {
+    localStorage.setItem('elixChatHistory', JSON.stringify(chatMessages));
+  }, [chatMessages]);
+
+  // Clear chat history
+  const handleClearChat = () => {
+    const defaultMessage = [
+      {
+        role: 'assistant',
+        content:
+          'Ask me anything about sorting, data structures, or algorithms and I will explain it clearly.\n\n' +
+          'If the visualizer is running, I can see exactly which step you are on — try asking **"Why did it just swap those two?"** ' +
+          'or press **🧠 Quiz Me** and I will test your understanding of the current step.',
+      },
+    ];
+    setChatMessages(defaultMessage);
+    localStorage.removeItem('elixChatHistory');
+  };
 
   const {
     algorithm      = null,
@@ -224,9 +249,14 @@ export default function AIPage({ onBack, vizContext = {} }) {
             Ask for explanations, walkthroughs, or algorithm comparisons without leaving the visualizer flow.
           </p>
         </div>
-        <button className="chat-toggle" onClick={onBack}>
-          ← Back
-        </button>
+        <div className="page-header-actions" style={{ display: 'flex', gap: '8px' }}>
+          <button className="chat-toggle btn-secondary" onClick={handleClearChat}>
+            Clear
+          </button>
+          <button className="chat-toggle" onClick={onBack}>
+            ← Back
+          </button>
+        </div>
       </div>
 
       {/* Context badge */}
