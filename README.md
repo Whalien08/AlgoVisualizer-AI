@@ -40,30 +40,33 @@ https://github.com/user-attachments/assets/3db45d79-fb6e-4aef-bd0c-f86eaaec3997
 The application is decoupled into a high-performance frontend and a robust Python backend, communicating via REST APIs.
 
 ```mermaid
-graph TD
-    subgraph Frontend [Client - React/Vite]
-        UI[Glassmorphism UI]
-        State[React State / Context]
-        Charts[Recharts]
+graph TB
+    subgraph Client ["<b>1. Frontend Layer (React/Vite)</b>"]
+        Features[("Visualizer, AI & Benchmark")]
+        State["React State (Global Context)"]
+        UI["Glassmorphism UI & Recharts"]
     end
 
-    subgraph Backend [Server - FastAPI]
-        API[REST API Endpoints]
-        Engine[Algorithm Step Generator]
+    subgraph Server ["<b>2. Application Layer (FastAPI)</b>"]
+        Gateway["REST API Gateway"]
+        Logic["Algorithm & Benchmark Engine"]
+        Proxy["Secure Proxy (Auth/Token)"]
     end
+
+    subgraph Cloud ["<b>3. Intelligence Layer (IBM Cloud)</b>"]
+        Watson["Watsonx Orchestrate"]
+    end
+
+    %% Data Flow
+    Features --> Gateway
+    Gateway --> Logic
+    Logic --> State
+    State --> UI
     
-    subgraph AI_Engine [IBM Cloud]
-        Orchestrate[Watsonx Orchestrate]
-        Granite[IBM Granite-3-8B-Instruct]
-        RAG[Algorithm Dataset RAG]
-    end
-
-    UI <-->|User Actions| State
-    State <-->|Fetch Step Plans| API
-    API <-->|Generates Logic| Engine
-    API <-->|IAM Auth & Inference| Orchestrate
-    Orchestrate <-->|Reasoning| Granite
-    Orchestrate <-->|Knowledge| RAG
+    %% AI Flow
+    Gateway --> Proxy
+    Proxy --> Watson
+    Watson --> Gateway
 ```
 🛠️ Tech Stack
 
