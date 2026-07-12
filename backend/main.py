@@ -650,67 +650,67 @@ async def generate_narration(state: AlgorithmState):
         return build_deterministic_plan(state.algorithm_name, state.data_structure)
 
 
-def build_context_block(request: ChatRequest) -> str:
-    """Build a user-facing message that includes live visualizer context when available."""
-    has_context = request.algorithm and request.current_step is not None
+# def build_context_block(request: ChatRequest) -> str:
+#     """Build a user-facing message that includes live visualizer context when available."""
+#     has_context = request.algorithm and request.current_step is not None
 
-    if not has_context:
-        return (
-            f"You are Elix, an AI tutor for an algorithm learning platform. "
-            f"Answer this question clearly and include a simple visual representation or example where helpful.\n\n"
-            f"Student Question: {request.message}"
-        )
+#     if not has_context:
+#         return (
+#             f"You are Elix, an AI tutor for an algorithm learning platform. "
+#             f"Answer this question clearly and include a simple visual representation or example where helpful.\n\n"
+#             f"Student Question: {request.message}"
+#         )
 
-    # Describe the highlighted indices in plain English
-    highlights = []
-    if request.compare_indices:
-        highlights.append(f"comparing indices {request.compare_indices}")
-    if request.swap_indices:
-        highlights.append(f"swapping indices {request.swap_indices}")
-    if request.pivot_indices:
-        highlights.append(f"pivot at index {request.pivot_indices}")
-    highlight_str = ("; ".join(highlights)) if highlights else "no highlighted elements"
+#     # Describe the highlighted indices in plain English
+#     highlights = []
+#     if request.compare_indices:
+#         highlights.append(f"comparing indices {request.compare_indices}")
+#     if request.swap_indices:
+#         highlights.append(f"swapping indices {request.swap_indices}")
+#     if request.pivot_indices:
+#         highlights.append(f"pivot at index {request.pivot_indices}")
+#     highlight_str = ("; ".join(highlights)) if highlights else "no highlighted elements"
 
-    context_block = (
-        f"[VISUALIZER CONTEXT]\n"
-        f"Algorithm: {request.algorithm}\n"
-        f"Step: {request.current_step + 1} of {request.step_count or '?'}\n"
-        f"Current array state: {request.data_array}\n"
-        f"Active highlights: {highlight_str}\n"
-        f"Step narration: {request.current_narration or 'none'}\n"
-        f"[END CONTEXT]\n\n"
-    )
+#     context_block = (
+#         f"[VISUALIZER CONTEXT]\n"
+#         f"Algorithm: {request.algorithm}\n"
+#         f"Step: {request.current_step + 1} of {request.step_count or '?'}\n"
+#         f"Current array state: {request.data_array}\n"
+#         f"Active highlights: {highlight_str}\n"
+#         f"Step narration: {request.current_narration or 'none'}\n"
+#         f"[END CONTEXT]\n\n"
+#     )
 
-    return (
-        f"You are Elix, an AI tutor helping a student learn data structures and algorithms.\n\n"
-        f"{context_block}"
-        f"INSTRUCTIONS:\n"
-        f"1. Evaluate the Student Question below: '{request.message}'\n"
-        f"2. IF the question is about the active visualizer ({request.algorithm}), use the [ACTIVE VISUALIZER CONTEXT] above to explain exactly what is happening on screen right now, referencing specific indices and numbers.\n"
-        f"3. IF the question is a general CS/algorithm topic unrelated to {request.algorithm} (for example, asking about trees, graphs, or big-O notation while a sorting algorithm is open), IGNORE the active visualizer context and answer their conceptual question directly and thoroughly! Do NOT lecture them about switching visualizers.\n\n"
-        f"Student Question: {request.message}"
-    )
+#     return (
+#         f"You are Elix, an AI tutor helping a student learn data structures and algorithms.\n\n"
+#         f"{context_block}"
+#         f"INSTRUCTIONS:\n"
+#         f"1. Evaluate the Student Question below: '{request.message}'\n"
+#         f"2. IF the question is about the active visualizer ({request.algorithm}), use the [ACTIVE VISUALIZER CONTEXT] above to explain exactly what is happening on screen right now, referencing specific indices and numbers.\n"
+#         f"3. IF the question is a general CS/algorithm topic unrelated to {request.algorithm} (for example, asking about trees, graphs, or big-O notation while a sorting algorithm is open), IGNORE the active visualizer context and answer their conceptual question directly and thoroughly! Do NOT lecture them about switching visualizers.\n\n"
+#         f"Student Question: {request.message}"
+#     )
 
-def build_context_prompt(request: ChatRequest) -> str:
-    """A stripped-down context string without system instructions."""
-    if not request.algorithm:
-        return f"User asked: {request.message}"
+# def build_minimal_context(request: ChatRequest) -> str:
+#     """A stripped-down context string without system instructions."""
+#     if not request.algorithm:
+#         return f"User asked: {request.message}"
 
-    highlights = []
-    if request.compare_indices:
-        highlights.append(f"comparing {request.compare_indices}")
-    if request.swap_indices:
-        highlights.append(f"swapping {request.swap_indices}")
-    if request.pivot_indices:
-        highlights.append(f"pivot {request.pivot_indices}")
-    h_str = "; ".join(highlights) if highlights else "none"
+#     highlights = []
+#     if request.compare_indices:
+#         highlights.append(f"comparing {request.compare_indices}")
+#     if request.swap_indices:
+#         highlights.append(f"swapping {request.swap_indices}")
+#     if request.pivot_indices:
+#         highlights.append(f"pivot {request.pivot_indices}")
+#     h_str = "; ".join(highlights) if highlights else "none"
 
-    return (
-        f"Algorithm: {request.algorithm} | "
-        f"Array: {request.data_array} | "
-        f"Highlights: {h_str} | "
-        f"User asked: {request.message}"
-    )
+#     return (
+#         f"Algorithm: {request.algorithm} | "
+#         f"Array: {request.data_array} | "
+#         f"Highlights: {h_str} | "
+#         f"User asked: {request.message}"
+#     )
 
 
 @app.post("/api/v1/chat")
@@ -721,7 +721,7 @@ async def chat_with_ai(request: ChatRequest):
     
     # DIAGNOSTIC 1: Check environment variables
     if not api_key or not base_url or not agent_id:
-        return {"reply": "❌ DIAGNOSTIC ERROR: Missing environment variables in deployment! Check your .env setup on your host."}
+        return {"reply": "❌ DIAGNOSTIC ERROR: Missing environment variables in deployment! Check your host settings."}
 
     try:
         access_token = get_iam_token(api_key)
@@ -731,7 +731,7 @@ async def chat_with_ai(request: ChatRequest):
             "Content-Type": "application/json"
         }
         
-        # Clean payload targeting the IBM API correctly
+        # We are correctly calling the function defined right above us!
         payload = {
             "input": build_minimal_context(request),
             "stream": False
