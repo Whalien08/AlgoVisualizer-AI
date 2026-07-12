@@ -4,7 +4,7 @@ import remarkGfm from 'remark-gfm';
 
 // ── Prompt builders ───────────────────────────────────────────────────────
 
-function buildQuizPrompt(ctx) {
+function buildQuizPrompt(ctx, chatContext) {
   const highlights = [];
   if (ctx.compare_indices?.length) highlights.push(`comparing indices ${JSON.stringify(ctx.compare_indices)}`);
   if (ctx.swap_indices?.length)    highlights.push(`swapping indices ${JSON.stringify(ctx.swap_indices)}`);
@@ -12,23 +12,21 @@ function buildQuizPrompt(ctx) {
   const highlightStr = highlights.length ? highlights.join('; ') : 'no highlighted elements';
 
   return (
-    `Your name is Elix. Greet user and introduce yourself as Elix`+
-    `You are a quiz tutor for an algorithm visualizer. ` +
-    `The student is watching ${ctx.algorithm} step by step.\n\n` +
-    `[CURRENT STATE]\n` +
+    `Your name is Elix. You are a quiz tutor for a computer science learning platform.\n\n` +
+    `[RECENT CONVERSATION]\n${chatContext || 'None'}\n\n` +
+    `[VISUALIZER STATE]\n` +
+    `Algorithm: ${ctx.algorithm}\n` +
     `Step: ${ctx.current_step + 1} of ${ctx.step_count ?? '?'}\n` +
     `Array: ${JSON.stringify(ctx.data_array)}\n` +
-    `Active highlights: ${highlightStr}\n` +
-    `Step narration: ${ctx.current_narration ?? 'none'}\n` +
-    `[END STATE]\n\n` +
-    `Ask the student ONE short, focused question about what the algorithm will do NEXT — ` +
-    `or why the current highlighted elements were chosen. ` +
-    `Do NOT reveal the answer. Keep it to 2–3 sentences maximum. ` +
-    `End with a clear question mark so the student knows what to answer.`
+    `Highlights: ${highlightStr}\n\n` +
+    `INSTRUCTIONS:\n` +
+    `1. Analyze the [RECENT CONVERSATION]. If the user was just asking about a general concept (like Linked Lists, Graph Traversal, Trees, etc.), ask them ONE short, focused conceptual quiz question about THAT topic to test their understanding.\n` +
+    `2. IF there is no recent conceptual conversation, use the [VISUALIZER STATE] to ask ONE short question about what the algorithm will do NEXT, or why the highlighted indices were chosen.\n` +
+    `3. Do NOT reveal the answer. Keep it to 2–3 sentences maximum. End with a clear question mark.`
   );
 }
 
-function buildGradePrompt(question, studentAnswer, ctx) {
+function buildGradePrompt(question, studentAnswer, ctx, chatContext) {
   const highlights = [];
   if (ctx.compare_indices?.length) highlights.push(`comparing indices ${JSON.stringify(ctx.compare_indices)}`);
   if (ctx.swap_indices?.length)    highlights.push(`swapping indices ${JSON.stringify(ctx.swap_indices)}`);
@@ -36,19 +34,16 @@ function buildGradePrompt(question, studentAnswer, ctx) {
   const highlightStr = highlights.length ? highlights.join('; ') : 'no highlighted elements';
 
   return (
-    `Your name is Elix. Greet user and introduce yourself as Elix`+ 
-    `You are a quiz tutor grading a student's answer about ${ctx.algorithm}.\n\n` +
-    `[QUIZ CONTEXT — step ${ctx.current_step + 1} of ${ctx.step_count ?? '?'}]\n` +
-    `Array at quiz time: ${JSON.stringify(ctx.data_array)}\n` +
-    `Active highlights: ${highlightStr}\n` +
-    `Step narration: ${ctx.current_narration ?? 'none'}\n` +
-    `[END CONTEXT]\n\n` +
+    `Your name is Elix. You are grading a student's answer to a recent quiz question.\n\n` +
+    `[RECENT CONVERSATION CONTEXT]\n${chatContext || 'None'}\n\n` +
+    `[VISUALIZER CONTEXT — step ${ctx.current_step + 1}]\n` +
+    `Array: ${JSON.stringify(ctx.data_array)} | Highlights: ${highlightStr}\n\n` +
     `Quiz question asked: "${question}"\n` +
     `Student's answer: "${studentAnswer}"\n\n` +
-    `Grade the answer clearly:\n` +
-    `1. Start with Correct, Partially correct, or Incorrect.\n` +
-    `2. In 2–4 sentences explain why, referencing the actual array values and indices.\n` +
-    `3. Briefly show what the algorithm actually does next (one sentence or a short visual).`
+    `INSTRUCTIONS to grade the answer:\n` +
+    `1. Start strictly with ✅ Correct, ⚠️ Partially correct, or ❌ Incorrect.\n` +
+    `2. In 2–4 sentences, explain why they are right or wrong.\n` +
+    `3. If it was a visualizer question, reference the actual array values. If it was a conceptual question, explain the underlying computer science principle clearly.`
   );
 }
 
@@ -164,22 +159,27 @@ export default function AIPage({ onBack, vizContext = {} }) {
     }
   };
 
-  // ── Quiz Me — Phase 1: generate the question ──────────────────────────
+// ── Quiz Me — Phase 1: generate the question ──────────────────────────
   const handleQuizMe = async () => {
-    if (!hasContext || isChatLoading) return;
+    if (isChatLoading) return; // Removed !hasContext so quizzes work anywhere
 
-    // Freeze a snapshot of the context at the exact moment Quiz Me is pressed
     const snapshot = ctxPayload();
+    
+    // Grab the last 4 messages to give Elix context on what we were just talking about
+    const recentChat = chatMessages
+      .slice(-4)
+      .map(m => `${m.role === 'user' ? 'Student' : 'Elix'}: ${m.content.substring(0, 150)}...`)
+      .join('\n');
 
     setChatMessages((prev) => [
       ...prev,
-      { role: 'assistant', content: '🧠 **Quiz time!** Let me look at what is happening on screen…', variant: 'quiz-intro' },
+      { role: 'assistant', content: '🧠 **Quiz time!** Let me think of a good question...', variant: 'quiz-intro' },
     ]);
     setIsChatLoading(true);
 
     try {
-      const question = await callChat(buildQuizPrompt(snapshot));
-      setQuizState({ question, snapshot });
+      const question = await callChat(buildQuizPrompt(snapshot, recentChat));
+      setQuizState({ question, snapshot, recentChat }); // Save recentChat for grading
       setChatMessages((prev) => [
         ...prev,
         { role: 'assistant', content: question, variant: 'quiz-question' },
@@ -194,9 +194,9 @@ export default function AIPage({ onBack, vizContext = {} }) {
     }
   };
 
-  // ── Quiz answer — Phase 2: grade the answer ───────────────────────────
+// ── Quiz answer — Phase 2: grade the answer ───────────────────────────
   const handleQuizAnswer = async (answer) => {
-    const { question, snapshot } = quizState;
+    const { question, snapshot, recentChat } = quizState;
 
     setChatMessages((prev) => [
       ...prev,
@@ -208,7 +208,7 @@ export default function AIPage({ onBack, vizContext = {} }) {
     setQuizState(null);
 
     try {
-      const gradePrompt = buildGradePrompt(question, answer, snapshot);
+      const gradePrompt = buildGradePrompt(question, answer, snapshot, recentChat);
       const reply = await callChat(gradePrompt);
       setChatMessages((prev) => [
         ...prev,
@@ -223,7 +223,6 @@ export default function AIPage({ onBack, vizContext = {} }) {
       setIsChatLoading(false);
     }
   };
-
   // ── Cancel quiz ───────────────────────────────────────────────────────
   const handleCancelQuiz = () => {
     setQuizState(null);
@@ -340,8 +339,8 @@ export default function AIPage({ onBack, vizContext = {} }) {
               <button
                 className="quiz-btn"
                 onClick={handleQuizMe}
-                disabled={!hasContext || isChatLoading}
-                title={hasContext ? 'Quiz me on the current step' : 'Start an algorithm on the visualizer first'}
+                disabled={isChatLoading}
+                title="Quiz me on the current step or recent conversation"
               >
                 🧠 Quiz Me
               </button>
