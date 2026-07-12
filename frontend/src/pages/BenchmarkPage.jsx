@@ -53,7 +53,7 @@ function StatBlock({ label, value, color }) {
 // ── Main page ─────────────────────────────────────────────────────────────
 export default function BenchmarkPage({ onBack }) {
   const [algoA, setAlgoA] = useState('Bubble Sort');
-  const [algoB, setAlgoB] = useState('Merge Sort');
+  const [algoB, setAlgoB] = useState('Quick Sort');
   const [arrayInput, setArrayInput] = useState('12, 45, 23, 7, 50, 3, 38');
 
   const [stepsA, setStepsA] = useState([]);
