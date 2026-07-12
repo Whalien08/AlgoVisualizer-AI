@@ -699,6 +699,7 @@ async def chat_with_ai(request: ChatRequest):
     agent_id = os.getenv("WATSON_AGENT_ID")
     
     if not api_key or not base_url or not agent_id:
+        print("DEBUG: Missing environment variables!")
         return {"reply": build_fallback_chat_reply(request.message)}
 
     try:
@@ -710,9 +711,10 @@ async def chat_with_ai(request: ChatRequest):
         }
         
         payload = {
-            "input": f"CONTEXT: {build_context_block(request)}\nUSER MESSAGE: {request.message}",
+            "input": f"CONTEXT: {build_context_prompt(request)}\nUSER MESSAGE: {request.message}",
             "stream": False
         }
+        print(f"DEBUGGING PAYLOAD: {payload}")
         
         response = REQUEST_SESSION.post(endpoint, json=payload, headers=headers, timeout=30)
         
