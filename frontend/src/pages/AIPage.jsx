@@ -44,6 +44,7 @@ function buildGradePrompt(question, studentAnswer, ctx, chatContext) {
     `1. Start strictly with Correct, Partially correct, or Incorrect.\n` +
     `2. In 2–4 sentences, explain why they are right or wrong.\n` +
     `3. If it was a visualizer question, reference the actual array values. If it was a conceptual question, explain the underlying computer science principle clearly.`
+    `4. 3. CRITICAL: Immediately after your explanation, generate a NEW, different quiz question based on the visualizer context to keep testing the student. End your response with this new question mark.`
   );
 }
 
