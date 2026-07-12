@@ -9,6 +9,13 @@
 ![IBM](https://img.shields.io/badge/IBM%20WatsonX-052FAD?style=for-the-badge&logo=ibm&logoColor=white)
 
 ---
+## Table of Contents
+- [✨ Core Features](#-core-features)
+- [🏗️ System Architecture](#-system-architecture)
+- [🛠️ Tech Stack](#-tech-stack)
+- [🚀 Supported Algorithms](#-supported-algorithms)
+- [💻 Local Installation](#-local-installation)
+- [🔮 Future Scope](#-future-scope)
 
 ## ✨ Core Features
 
@@ -118,7 +125,7 @@ npm run dev
 ## 2. Backend Setup
 
 1. Navigate to the backend directory
-2. Bash
+Bash
 ```
 cd ../backend
 ```
