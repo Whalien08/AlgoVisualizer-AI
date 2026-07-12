@@ -701,9 +701,9 @@ async def chat_with_ai(request: ChatRequest):
 
     try:
         access_token = get_iam_token(api_key)
-        BASE_URL = "https://api.us-south.watson-orchestrate.cloud.ibm.com/instances/d781388e-1567-4604-b277-a72a9f74fc4e"
-        AGENT_ID = "4defadc3-2aa7-4c81-ae06-eb8d799f3308"
-        ENDPOINT = BASE_URL + "/v1/orchestrate/" + AGENT_ID + "/chat/completions"
+        BASE_URL = os.getenv("WATSON_BASE_URL")
+        AGENT_ID = os.getenv("WATSON_AGENT_ID")
+        ENDPOINT = f"{BASE_URL}/v1/orchestrate/{AGENT_ID}/chat/completions"
         headers = {"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"}
         payload = {
             "messages": [{"role": "user", "content": build_context_prompt(request)}],
