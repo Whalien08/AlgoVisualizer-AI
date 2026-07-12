@@ -731,9 +731,13 @@ async def chat_with_ai(request: ChatRequest):
             "Content-Type": "application/json"
         }
         
-        # We are correctly calling the function defined right above us!
         payload = {
-            "input": build_minimal_context(request),
+            "messages": [
+                {
+                    "role": "user",
+                    "content": build_minimal_context(request)
+                }
+            ],
             "stream": False
         }
         
