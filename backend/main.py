@@ -657,8 +657,9 @@ def build_context_prompt(request: ChatRequest) -> str:
 
     if not has_context:
         return (
-            f"Answer this question in detail and include a simple visual representation where helpful.\n\n"
-            f"Question: {request.message}"
+            f"You are Elix, an AI tutor for an algorithm learning platform. "
+            f"Answer this question clearly and include a simple visual representation or example where helpful.\n\n"
+            f"Student Question: {request.message}"
         )
 
     # Describe the highlighted indices in plain English
@@ -682,14 +683,13 @@ def build_context_prompt(request: ChatRequest) -> str:
     )
 
     return (
-        f"You are an AI tutor helping a student learn algorithms interactively. "
-        f"The student is watching a live step-by-step visualisation. "
-        f"Use the context below to give a precise, specific answer that directly references "
-        f"what is happening on screen right now.\n\n"
+        f"You are Elix, an AI tutor helping a student learn data structures and algorithms.\n\n"
         f"{context_block}"
-        f"Student question: {request.message}\n\n"
-        f"Answer clearly and concisely. Reference the actual array values and indices shown above. "
-        f"Include a brief visual or example where helpful."
+        f"INSTRUCTIONS:\n"
+        f"1. Evaluate the Student Question below: '{request.message}'\n"
+        f"2. IF the question is about the active visualizer ({request.algorithm}), use the [ACTIVE VISUALIZER CONTEXT] above to explain exactly what is happening on screen right now, referencing specific indices and numbers.\n"
+        f"3. IF the question is a general CS/algorithm topic unrelated to {request.algorithm} (for example, asking about trees, graphs, or big-O notation while a sorting algorithm is open), IGNORE the active visualizer context and answer their conceptual question directly and thoroughly! Do NOT lecture them about switching visualizers.\n\n"
+        f"Student Question: {request.message}"
     )
 
 

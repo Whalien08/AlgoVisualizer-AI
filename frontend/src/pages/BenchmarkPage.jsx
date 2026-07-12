@@ -153,7 +153,6 @@ export default function BenchmarkPage({ onBack }) {
   const isComplete = hasData && cursor >= maxLen - 1;
 
   // ── Chart data: one point per step up to the cursor ─────────────────────
-  // Sample at most 120 points so the chart stays crisp on large arrays
   const chartData = (() => {
     if (!hasData) return [];
     const limit = cursor + 1;
