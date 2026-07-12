@@ -597,10 +597,9 @@ async def generate_narration(state: AlgorithmState):
     try:
         access_token = get_iam_token(api_key)
 
-        BASE_URL = "https://api.us-south.watson-orchestrate.cloud.ibm.com/instances/d781388e-1567-4604-b277-a72a9f74fc4e"
-        AGENT_ID = "4defadc3-2aa7-4c81-ae06-eb8d799f3308"
-
-        ENDPOINT = BASE_URL + "/v1/orchestrate/" + AGENT_ID + "/chat/completions"
+        BASE_URL = os.getenv("WATSON_BASE_URL")
+        AGENT_ID = os.getenv("WATSON_AGENT_ID")
+        ENDPOINT = f"{BASE_URL}/v1/orchestrate/{AGENT_ID}/chat/completions"
         headers = {"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"}
 
         user_prompt = (
@@ -696,25 +695,35 @@ def build_context_prompt(request: ChatRequest) -> str:
 @app.post("/api/v1/chat")
 async def chat_with_ai(request: ChatRequest):
     api_key = os.getenv("WATSONX_APIKEY")
-    if not api_key:
+    base_url = os.getenv("WATSON_BASE_URL")
+    agent_id = os.getenv("WATSON_AGENT_ID")
+    
+    if not api_key or not base_url or not agent_id:
         return {"reply": build_fallback_chat_reply(request.message)}
 
     try:
         access_token = get_iam_token(api_key)
-        BASE_URL = os.getenv("WATSON_BASE_URL")
-        AGENT_ID = os.getenv("WATSON_AGENT_ID")
-        ENDPOINT = f"{BASE_URL}/v1/orchestrate/{AGENT_ID}/chat/completions"
-        headers = {"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"}
-        payload = {
-            "messages": [{"role": "user", "content": build_context_prompt(request)}],
-            "stream": False,
+        endpoint = f"{base_url}/v1/orchestrate/{agent_id}/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {access_token}", 
+            "Content-Type": "application/json"
         }
-        response = REQUEST_SESSION.post(ENDPOINT, json=payload, headers=headers, timeout=(10, 30))
-        if not response.ok:
+        
+        payload = {
+            "input": f"CONTEXT: {build_context_block(request)}\nUSER MESSAGE: {request.message}",
+            "stream": False
+        }
+        
+        response = REQUEST_SESSION.post(endpoint, json=payload, headers=headers, timeout=30)
+        
+        if response.ok:
+            data = response.json()
+            reply = data.get("reply") or data.get("output", {}).get("text", "No response received.")
+            return {"reply": reply}
+        else:
+            print(f"DEBUG IBM ERROR: {response.status_code} - {response.text}")
             return {"reply": build_fallback_chat_reply(request.message)}
-        data = response.json()
-        reply = data.get("choices", [{}])[0].get("message", {}).get("content", "")
-        return {"reply": reply}
+            
     except Exception as e:
-        print(f"DEBUG CHAT ERROR: {str(e)}")
+        print(f"DEBUG CHAT ERROR: {e}")
         return {"reply": build_fallback_chat_reply(request.message)}
