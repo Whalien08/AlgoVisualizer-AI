@@ -745,8 +745,14 @@ async def chat_with_ai(request: ChatRequest):
         
         if response.ok:
             data = response.json()
-            # Try to grab the reply, or dump the raw JSON to screen if the shape is unexpected
-            reply = data.get("reply") or data.get("output", {}).get("text") or f"⚠️ RAW SUCCESS PAYLOAD: {json.dumps(data)}"
+            
+            # Safely grab the text from the choices array
+            choices = data.get("choices", [])
+            if choices:
+                reply = choices[0].get("message", {}).get("content", "No content found.")
+            else:
+                reply = data.get("reply") or data.get("output", {}).get("text") or f"⚠️ UNKNOWN: {json.dumps(data)}"
+                
             return {"reply": reply}
         else:
             # DIAGNOSTIC 2: Print exact IBM rejection to the chat UI
