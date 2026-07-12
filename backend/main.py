@@ -691,6 +691,27 @@ def build_context_block(request: ChatRequest) -> str:
         f"Student Question: {request.message}"
     )
 
+def build_context_prompt(request: ChatRequest) -> str:
+    """A stripped-down context string without system instructions."""
+    if not request.algorithm:
+        return f"User asked: {request.message}"
+
+    highlights = []
+    if request.compare_indices:
+        highlights.append(f"comparing {request.compare_indices}")
+    if request.swap_indices:
+        highlights.append(f"swapping {request.swap_indices}")
+    if request.pivot_indices:
+        highlights.append(f"pivot {request.pivot_indices}")
+    h_str = "; ".join(highlights) if highlights else "none"
+
+    return (
+        f"Algorithm: {request.algorithm} | "
+        f"Array: {request.data_array} | "
+        f"Highlights: {h_str} | "
+        f"User asked: {request.message}"
+    )
+
 
 @app.post("/api/v1/chat")
 async def chat_with_ai(request: ChatRequest):
