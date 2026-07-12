@@ -698,9 +698,9 @@ async def chat_with_ai(request: ChatRequest):
     base_url = os.getenv("WATSON_BASE_URL")
     agent_id = os.getenv("WATSON_AGENT_ID")
     
+    # DIAGNOSTIC 1: Check environment variables
     if not api_key or not base_url or not agent_id:
-        print("DEBUG: Missing environment variables!")
-        return {"reply": build_fallback_chat_reply(request.message)}
+        return {"reply": "❌ DIAGNOSTIC ERROR: Missing environment variables in deployment! Check your .env setup on your host."}
 
     try:
         access_token = get_iam_token(api_key)
@@ -710,22 +710,23 @@ async def chat_with_ai(request: ChatRequest):
             "Content-Type": "application/json"
         }
         
+        # Clean payload targeting the IBM API correctly
         payload = {
-            "input": f"CONTEXT: {build_context_block(request)}\nUSER MESSAGE: {request.message}",
+            "input": build_minimal_context(request),
             "stream": False
         }
-        print(f"DEBUGGING PAYLOAD: {payload}")
         
         response = REQUEST_SESSION.post(endpoint, json=payload, headers=headers, timeout=30)
         
         if response.ok:
             data = response.json()
-            reply = data.get("reply") or data.get("output", {}).get("text", "No response received.")
+            # Try to grab the reply, or dump the raw JSON to screen if the shape is unexpected
+            reply = data.get("reply") or data.get("output", {}).get("text") or f"⚠️ RAW SUCCESS PAYLOAD: {json.dumps(data)}"
             return {"reply": reply}
         else:
-            print(f"DEBUG IBM ERROR: {response.status_code} - {response.text}")
-            return {"reply": build_fallback_chat_reply(request.message)}
+            # DIAGNOSTIC 2: Print exact IBM rejection to the chat UI
+            return {"reply": f"❌ IBM REJECTED REQUEST | Status: {response.status_code} | Reason: {response.text}"}
             
     except Exception as e:
-        print(f"DEBUG CHAT ERROR: {e}")
-        return {"reply": build_fallback_chat_reply(request.message)}
+        # DIAGNOSTIC 3: Print Python crash to the chat UI
+        return {"reply": f"❌ PYTHON BACKEND CRASHED: {str(e)}"}
